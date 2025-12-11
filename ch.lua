@@ -1542,7 +1542,7 @@ function redzlib:MakeWindow(Configs)
 	
 	local MinimizeButton = SetProps(CloseButton:Clone(), {
 		Position = UDim2.new(1, -35, 0.5),
-		Image = "rbxassetid://10734896206",
+		Image = "rbxassetid://135767012904945",
 		Name = "Minimize"
 	})
 	
