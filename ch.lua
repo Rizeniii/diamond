@@ -1576,7 +1576,7 @@ function redzlib:MakeWindow(Configs)
 			ControlSize2.Visible = true
 			Minimized = false
 		else
-			MinimizeButton.Image = "rbxassetid://110657725541747"
+			MinimizeButton.Image = "rbxassetid://135767012904945"
 			SaveSize = MainFrame.Size
 			ControlSize1.Visible = false
 			ControlSize2.Visible = false
