@@ -12,13 +12,13 @@ local redzlib = {
     Themes = {
         TuanAnhIOS = {
             ["Color Hub 1"] = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(30, 30, 30)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 30, 30)),
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 0, 0)),
                 ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
             }),
             ["Color Hub 2"] = Color3.fromRGB(0, 0, 0),
-            ["Color Stroke"] = Color3.fromRGB(242, 243, 243),
-            ["Color Theme"] = Color3.fromRGB(161, 165, 162),
+            ["Color Stroke"] = Color3.fromRGB(0, 0, 0),
+            ["Color Theme"] = Color3.fromRGB(242, 243, 243),
             ["Color Text"] = Color3.fromRGB(242, 243, 243),
             ["Color Dark Text"] = Color3.fromRGB(242, 243, 243)
         }
