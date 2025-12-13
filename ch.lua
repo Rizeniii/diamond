@@ -19,7 +19,7 @@ local redzlib = {
             ["Color Hub 2"] = Color3.fromRGB(0, 0, 0),
             ["Color Stroke"] = Color3.fromRGB(60, 0, 0),
             ["Color Theme"] = Color3.fromRGB(120, 0, 0),
-            ["Color Text"] = Color3.fromRGB(255, 200, 200),
+            ["Color Text"] = Color3.fromRGB(242, 243, 243),
             ["Color Dark Text"] = Color3.fromRGB(180, 100, 100)
         }
     },
