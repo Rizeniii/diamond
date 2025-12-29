@@ -1026,7 +1026,7 @@ local Connections, Connection = {}, redzlib.Connection do
 		end
 	end
 	
-	NewConnectionList({"FlagsChanged", "ThemeChanged", "FileSaved", "ThemeChanging", "OptionAdded", "NotificationShown", "NotificationHidden"})
+	NewConnectionList({"FlagsChanged", "ThemeChanged", "FileSaved", "ThemeChanging", "OptionAdded"})
 end
 
 local GetFlag, SetFlag, CheckFlag do
@@ -1740,81 +1740,7 @@ function redzlib:MakeWindow(Configs)
 			end
 		end
 	end
-	function Window:Notify(Configs)
-	local NTitle = Configs[1] or Configs.Title or "Notification"
-	local NText = Configs[2] or Configs.Text or "This is a notification"
-	local NDuration = Configs[3] or Configs.Duration or 5
 	
-	local NotifFrame = InsertTheme(Create("Frame", ScreenGui, {
-		Size = UDim2.fromOffset(300, 70),
-		Position = UDim2.new(1, 320, 1, -80),
-		BackgroundColor3 = Theme["Color Hub 2"],
-		BackgroundTransparency = 1
-	}), "Frame")
-	Make("Corner", NotifFrame)
-	Make("Gradient", NotifFrame, {Rotation = 45})
-	
-	local Icon = Create("ImageLabel", NotifFrame, {
-		Size = UDim2.fromOffset(25, 25),
-		Position = UDim2.fromOffset(10, 10),
-		Image = "rbxassetid://107112628939176",
-		BackgroundTransparency = 1
-	})
-	
-	local Title = InsertTheme(Create("TextLabel", NotifFrame, {
-		Size = UDim2.new(1, -50, 0, 20),
-		Position = UDim2.fromOffset(45, 8),
-		Text = NTitle,
-		Font = Enum.Font.GothamBold,
-		TextSize = 11,
-		TextColor3 = Theme["Color Text"],
-		TextXAlignment = "Left",
-		BackgroundTransparency = 1
-	}), "Text")
-	
-	local Text = InsertTheme(Create("TextLabel", NotifFrame, {
-		Size = UDim2.new(1, -50, 0, 35),
-		Position = UDim2.fromOffset(45, 28),
-		Text = NText,
-		Font = Enum.Font.Gotham,
-		TextSize = 9,
-		TextColor3 = Theme["Color Dark Text"],
-		TextXAlignment = "Left",
-		TextYAlignment = "Top",
-		TextWrapped = true,
-		BackgroundTransparency = 1
-	}), "DarkText")
-	
-	local Progress = InsertTheme(Create("Frame", NotifFrame, {
-		Size = UDim2.new(1, 0, 0, 3),
-		Position = UDim2.new(0, 0, 1, 0),
-		AnchorPoint = Vector2.new(0, 1),
-		BackgroundColor3 = Theme["Color Theme"],
-		BorderSizePixel = 0
-	}), "Theme")
-	
-	CreateTween({NotifFrame, "Position", UDim2.new(1, -310, 1, -80), 0.5})
-	CreateTween({NotifFrame, "BackgroundTransparency", 0, 0.5})
-	Connection:FireConnection("NotificationShown", NTitle, NText)
-	
-	task.spawn(function()
-		CreateTween({Progress, "Size", UDim2.new(0, 0, 0, 3), NDuration})
-		task.wait(NDuration)
-		CreateTween({NotifFrame, "Position", UDim2.new(1, 320, 1, -80), 0.5})
-		CreateTween({NotifFrame, "BackgroundTransparency", 1, 0.5, true})
-		Connection:FireConnection("NotificationHidden", NTitle, NText)
-		NotifFrame:Destroy()
-	end)
-	
-	local Notification = {}
-	function Notification:Close()
-		CreateTween({NotifFrame, "Position", UDim2.new(1, 320, 1, -80), 0.5})
-		CreateTween({NotifFrame, "BackgroundTransparency", 1, 0.5, true})
-		NotifFrame:Destroy()
-	end
-	return Notification
-end
-
 	local ContainerList = {}
 	function Window:MakeTab(paste, Configs)
 		if type(paste) == "table" then Configs = paste end
@@ -2273,27 +2199,24 @@ end
 				end
 				
 				local function UpdateSelected()
-	if MultiSelect then
-		for _,v in pairs(Options) do
-			local nodes, Stats = v.nodes, v.Stats
-			if v.Check then
-				CreateTween({v.Check, "ImageTransparency", Stats and 0 or 1, 0.25})
-			end
-			CreateTween({nodes[2], "BackgroundTransparency", Stats and 0 or 0.8, 0.35})
-			CreateTween({nodes[2], "Size", Stats and UDim2.fromOffset(4, 12) or UDim2.fromOffset(4, 4), 0.35})
-			CreateTween({nodes[3], "TextTransparency", Stats and 0 or 0.4, 0.35})
-		end
-	else
-		for _,v in pairs(Options) do
-			local Slt = v.Value == Selected
-			local nodes = v.nodes
-			CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
-			CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 14) or UDim2.fromOffset(4, 4), 0.35})
-			CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.4, 0.35})
-		end
-	end
-	UpdateLabel()
-end
+					if MultiSelect then
+						for _,v in pairs(Options) do
+							local nodes, Stats = v.nodes, v.Stats
+							CreateTween({nodes[2], "BackgroundTransparency", Stats and 0 or 0.8, 0.35})
+							CreateTween({nodes[2], "Size", Stats and UDim2.fromOffset(4, 12) or UDim2.fromOffset(4, 4), 0.35})
+							CreateTween({nodes[3], "TextTransparency", Stats and 0 or 0.4, 0.35})
+						end
+					else
+						for _,v in pairs(Options) do
+							local Slt = v.Value == Selected
+							local nodes = v.nodes
+							CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
+							CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 14) or UDim2.fromOffset(4, 4), 0.35})
+							CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.4, 0.35})
+						end
+					end
+					UpdateLabel()
+				end
 				
 				local function Select(Option)
 					if MultiSelect then
@@ -2312,78 +2235,55 @@ end
 				end
 				
 				AddOption = function(index, Value)
-	local Name = tostring(type(index) == "string" and index or Value)
-	
-	if Options[Name] then return end
-	Options[Name] = {
-		index = index,
-		Value = Value,
-		Name = Name,
-		Stats = false,
-		LastCB = 0
-	}
-	
-	if MultiSelect then
-		local Stats = Selected[Name]
-		Selected[Name] = Stats or false
-		Options[Name].Stats = Stats
-	end
-	
-	local Button = Make("Button", ScrollFrame, {
-		Name = "Option",
-		Size = UDim2.new(1, 0, 0, 21),
-		Position = UDim2.new(0, 0, 0.5),
-		AnchorPoint = Vector2.new(0, 0.5)
-	})Make("Corner", Button, UDim.new(0, 4))
-	
-	local CheckBox = InsertTheme(Create("Frame", Button, {
-		Size = UDim2.fromOffset(14, 14),
-		Position = UDim2.new(1, -8, 0.5),
-		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundColor3 = Theme["Color Stroke"],
-		BackgroundTransparency = MultiSelect and 0 or 1
-	}), "Stroke")
-	
-	if MultiSelect then
-		Make("Corner", CheckBox, UDim.new(0, 3))
-		local Check = InsertTheme(Create("ImageLabel", CheckBox, {
-			Size = UDim2.fromScale(0.8, 0.8),
-			Position = UDim2.fromScale(0.5, 0.5),
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Image = "rbxassetid://10709790644",
-			BackgroundTransparency = 1,
-			ImageTransparency = 1
-		}), "Theme")
-		Options[Name].Check = Check
-	else
-		Make("Corner", CheckBox, UDim.new(0.5, 0))
-	end
-	
-	local IsSelected = InsertTheme(Create("Frame", Button, {
-		Position = UDim2.new(0, 1, 0.5),
-		Size = UDim2.new(0, 4, 0, 4),
-		BackgroundColor3 = Theme["Color Theme"],
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0, 0.5)
-	}), "Theme")Make("Corner", IsSelected, UDim.new(0.5, 0))
-	
-	local OptioneName = InsertTheme(Create("TextLabel", Button, {
-		Size = UDim2.new(1, MultiSelect and -30 or -15, 1),
-		Position = UDim2.new(0, 10),
-		Text = Name,
-		TextColor3 = Theme["Color Text"],
-		Font = Enum.Font.GothamBold,
-		TextXAlignment = "Left",
-		BackgroundTransparency = 1,
-		TextTransparency = 0.4
-	}), "Text")
-	
-	Button.Activated:Connect(function()
-		Select(Options[Name])
-	end)
-	
-	Options[Name].nodes = {Button, IsSelected, OptioneName, CheckBox}
-end
+					local Name = tostring(type(index) == "string" and index or Value)
+					
+					if Options[Name] then return end
+					Options[Name] = {
+						index = index,
+						Value = Value,
+						Name = Name,
+						Stats = false,
+						LastCB = 0
+					}
+					
+					if MultiSelect then
+						local Stats = Selected[Name]
+						Selected[Name] = Stats or false
+						Options[Name].Stats = Stats
+					end
+					
+					local Button = Make("Button", ScrollFrame, {
+						Name = "Option",
+						Size = UDim2.new(1, 0, 0, 21),
+						Position = UDim2.new(0, 0, 0.5),
+						AnchorPoint = Vector2.new(0, 0.5)
+					})Make("Corner", Button, UDim.new(0, 4))
+					
+					local IsSelected = InsertTheme(Create("Frame", Button, {
+						Position = UDim2.new(0, 1, 0.5),
+						Size = UDim2.new(0, 4, 0, 4),
+						BackgroundColor3 = Theme["Color Theme"],
+						BackgroundTransparency = 1,
+						AnchorPoint = Vector2.new(0, 0.5)
+					}), "Theme")Make("Corner", IsSelected, UDim.new(0.5, 0))
+					
+					local OptioneName = InsertTheme(Create("TextLabel", Button, {
+						Size = UDim2.new(1, 0, 1),
+						Position = UDim2.new(0, 10),
+						Text = Name,
+						TextColor3 = Theme["Color Text"],
+						Font = Enum.Font.GothamBold,
+						TextXAlignment = "Left",
+						BackgroundTransparency = 1,
+						TextTransparency = 0.4
+					}), "Text")
+					
+					Button.Activated:Connect(function()
+						Select(Options[Name])
+					end)
+					
+					Options[Name].nodes = {Button, IsSelected, OptioneName}
+				end
 				
 				RemoveOption = function(index, Value)
 					local Name = tostring(type(index) == "string" and index or Value)
