@@ -5,6 +5,15 @@ local RunService = game:GetService("RunService")
 local ModernUI = {}
 ModernUI.__index = ModernUI
 
+local THEMES = {
+    White = Color3.fromRGB(255, 255, 255),
+    Red = Color3.fromRGB(255, 70, 70),
+    Purple = Color3.fromRGB(170, 100, 255),
+    Yellow = Color3.fromRGB(255, 220, 70),
+    Green = Color3.fromRGB(70, 255, 150),
+    Blue = Color3.fromRGB(70, 150, 255)
+}
+
 local COLORS = {
     Background = Color3.fromRGB(8, 8, 12),
     Surface = Color3.fromRGB(12, 12, 18),
@@ -16,17 +25,21 @@ local COLORS = {
     Accent = Color3.fromRGB(255, 255, 255)
 }
 
-local TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-local FAST_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-local SLOW_TWEEN = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local FAST_TWEEN = TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local SLOW_TWEEN = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-function ModernUI.new(title, subtitle)
+function ModernUI.new(config)
     local self = setmetatable({}, ModernUI)
     
-    self.Title = title
-    self.SubTitle = subtitle
+    config = config or {}
+    self.Title = config.Title or "Modern UI"
+    self.SubTitle = config.SubTitle or "Library"
+    self.Icon = config.Icon or "rbxassetid://7733955511"
     self.MinimizeKey = Enum.KeyCode.LeftControl
     self.SaveFolder = "ModernUIConfig"
+    self.AcrylicEnabled = false
+    self.CurrentTheme = "White"
     
     self.ScreenGui = Instance.new("ScreenGui")
     self.ScreenGui.Name = "ModernUILibrary"
@@ -70,12 +83,14 @@ function ModernUI.new(title, subtitle)
     
     self.Tabs = {}
     self.CurrentTab = nil
-    self.MinimizedFrame = nil
     self.ConfigData = {}
+    self.AccentElements = {}
     
     self.ScreenGui.Parent = game:GetService("CoreGui")
     
     self:LoadConfig()
+    self:ApplyTheme(self.CurrentTheme)
+    self:ApplyAcrylic(self.AcrylicEnabled)
     
     return self
 end
@@ -105,9 +120,11 @@ function ModernUI:CreateHeader()
     IconFrame.Size = UDim2.new(0, 22, 0, 22)
     IconFrame.Position = UDim2.new(0.5, -11, 0.5, -11)
     IconFrame.BackgroundTransparency = 1
-    IconFrame.Image = "rbxassetid://7733955511"
+    IconFrame.Image = self.Icon
     IconFrame.ImageColor3 = COLORS.White
     IconFrame.Parent = IconContainer
+    
+    self.IconFrame = IconFrame
     
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
@@ -168,10 +185,45 @@ function ModernUI:CreateHeader()
         TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = COLORS.Gray}):Play()
     end)
     
+    local SettingsButton = Instance.new("TextButton")
+    SettingsButton.Name = "Settings"
+    SettingsButton.Size = UDim2.new(0, 30, 0, 30)
+    SettingsButton.Position = UDim2.new(1, -78, 0.5, -15)
+    SettingsButton.BackgroundColor3 = COLORS.Surface
+    SettingsButton.Text = ""
+    SettingsButton.AutoButtonColor = false
+    SettingsButton.Parent = Header
+    
+    local SettingsCorner = Instance.new("UICorner")
+    SettingsCorner.CornerRadius = UDim.new(0, 8)
+    SettingsCorner.Parent = SettingsButton
+    
+    local SettingsIcon = Instance.new("ImageLabel")
+    SettingsIcon.Size = UDim2.new(0, 14, 0, 14)
+    SettingsIcon.Position = UDim2.new(0.5, -7, 0.5, -7)
+    SettingsIcon.BackgroundTransparency = 1
+    SettingsIcon.Image = "rbxassetid://7734053495"
+    SettingsIcon.ImageColor3 = COLORS.Gray
+    SettingsIcon.Parent = SettingsButton
+    
+    SettingsButton.MouseButton1Click:Connect(function()
+        self:ShowSettingsWindow()
+    end)
+    
+    SettingsButton.MouseEnter:Connect(function()
+        TweenService:Create(SettingsButton, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
+        TweenService:Create(SettingsIcon, FAST_TWEEN, {ImageColor3 = COLORS.White, Rotation = 90}):Play()
+    end)
+    
+    SettingsButton.MouseLeave:Connect(function()
+        TweenService:Create(SettingsButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Surface}):Play()
+        TweenService:Create(SettingsIcon, FAST_TWEEN, {ImageColor3 = COLORS.Gray, Rotation = 0}):Play()
+    end)
+    
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "Minimize"
     MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
-    MinimizeButton.Position = UDim2.new(1, -78, 0.5, -15)
+    MinimizeButton.Position = UDim2.new(1, -114, 0.5, -15)
     MinimizeButton.BackgroundColor3 = COLORS.Surface
     MinimizeButton.Text = ""
     MinimizeButton.AutoButtonColor = false
@@ -282,13 +334,15 @@ function ModernUI:MakeDraggable()
     
     local Header = self.MainFrame:FindFirstChild("Header")
     
-    Header.InputBegan:Connect(function(input)
+    local function onInputBegan(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = self.MainFrame.Position
         end
-    end)
+    end
+    
+    Header.InputBegan:Connect(onInputBegan)
     
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
@@ -356,6 +410,9 @@ function ModernUI:SetupMinimizeKey()
 end
 
 function ModernUI:ToggleUI()
+    local targetPos = self.MainFrame.Visible and UDim2.new(0.5, -290, 1.5, 0) or UDim2.new(0.5, -290, 0.5, -230)
+    TweenService:Create(self.MainFrame, TWEEN_INFO, {Position = targetPos}):Play()
+    wait(0.3)
     self.MainFrame.Visible = not self.MainFrame.Visible
 end
 
@@ -373,7 +430,7 @@ function ModernUI:ShowConfirmDialog()
     
     local Dialog = Instance.new("Frame")
     Dialog.Name = "Dialog"
-    Dialog.Size = UDim2.new(0, 300, 0, 150)
+    Dialog.Size = UDim2.new(0, 300, 0, 0)
     Dialog.Position = UDim2.new(0.5, -150, 0.5, -75)
     Dialog.BackgroundColor3 = COLORS.Surface
     Dialog.BorderSizePixel = 0
@@ -384,7 +441,6 @@ function ModernUI:ShowConfirmDialog()
     DialogCorner.CornerRadius = UDim.new(0, 14)
     DialogCorner.Parent = Dialog
     
-    Dialog.Size = UDim2.new(0, 300, 0, 0)
     TweenService:Create(Dialog, TWEEN_INFO, {Size = UDim2.new(0, 300, 0, 150)}):Play()
     
     local Title = Instance.new("TextLabel")
@@ -493,8 +549,411 @@ function ModernUI:ShowConfirmDialog()
     end)
 end
 
-function ModernUI:CreateTab(name, icon)
+function ModernUI:ShowSettingsWindow()
+    if self.SettingsWindow and self.SettingsWindow.Parent then
+        self.SettingsWindow:Destroy()
+    end
+    
+    local Overlay = Instance.new("Frame")
+    Overlay.Name = "SettingsOverlay"
+    Overlay.Size = UDim2.new(1, 0, 1, 0)
+    Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Overlay.BackgroundTransparency = 1
+    Overlay.BorderSizePixel = 0
+    Overlay.ZIndex = 10
+    Overlay.Parent = self.MainFrame
+    
+    TweenService:Create(Settings, TWEEN_INFO, {Size = UDim2.new(0, 400, 0, 400)}):Play()
+    
+    local Header = Instance.new("Frame")
+    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.BackgroundTransparency = 1
+    Header.ZIndex = 11
+    Header.Parent = Settings
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -50, 1, 0)
+    Title.Position = UDim2.new(0, 20, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "Settings"
+    Title.TextColor3 = COLORS.White
+    Title.TextSize = 16
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 11
+    Title.Parent = Header
+    
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseBtn.BackgroundColor3 = COLORS.Background
+    CloseBtn.Text = ""
+    CloseBtn.AutoButtonColor = false
+    CloseBtn.ZIndex = 11
+    CloseBtn.Parent = Header
+    
+    local CloseBtnCorner = Instance.new("UICorner")
+    CloseBtnCorner.CornerRadius = UDim.new(0, 8)
+    CloseBtnCorner.Parent = CloseBtn
+    
+    local CloseIcon = Instance.new("ImageLabel")
+    CloseIcon.Size = UDim2.new(0, 14, 0, 14)
+    CloseIcon.Position = UDim2.new(0.5, -7, 0.5, -7)
+    CloseIcon.BackgroundTransparency = 1
+    CloseIcon.Image = "rbxassetid://7734053426"
+    CloseIcon.ImageColor3 = COLORS.Gray
+    CloseIcon.ZIndex = 11
+    CloseIcon.Parent = CloseBtn
+    
+    CloseBtn.MouseButton1Click:Connect(function()
+        TweenService:Create(Settings, FAST_TWEEN, {Size = UDim2.new(0, 400, 0, 0)}):Play()
+        TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 1}):Play()
+        wait(0.2)
+        Overlay:Destroy()
+    end)
+    
+    CloseBtn.MouseEnter:Connect(function()
+        TweenService:Create(CloseBtn, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
+        TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = COLORS.White}):Play()
+    end)
+    
+    CloseBtn.MouseLeave:Connect(function()
+        TweenService:Create(CloseBtn, FAST_TWEEN, {BackgroundColor3 = COLORS.Background}):Play()
+        TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = COLORS.Gray}):Play()
+    end)
+    
+    local Divider = Instance.new("Frame")
+    Divider.Size = UDim2.new(1, -40, 0, 1)
+    Divider.Position = UDim2.new(0, 20, 0, 50)
+    Divider.BackgroundColor3 = COLORS.Border
+    Divider.BorderSizePixel = 0
+    Divider.ZIndex = 11
+    Divider.Parent = Settings
+    
+    local Content = Instance.new("ScrollingFrame")
+    Content.Size = UDim2.new(1, -40, 1, -110)
+    Content.Position = UDim2.new(0, 20, 0, 60)
+    Content.BackgroundTransparency = 1
+    Content.BorderSizePixel = 0
+    Content.ScrollBarThickness = 3
+    Content.ScrollBarImageColor3 = COLORS.Border
+    Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+    Content.ZIndex = 11
+    Content.Parent = Settings
+    
+    local ContentLayout = Instance.new("UIListLayout")
+    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ContentLayout.Padding = UDim.new(0, 15)
+    ContentLayout.Parent = Content
+    
+    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        Content.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+    end)
+    
+    local ThemeLabel = Instance.new("TextLabel")
+    ThemeLabel.Size = UDim2.new(1, 0, 0, 20)
+    ThemeLabel.BackgroundTransparency = 1
+    ThemeLabel.Text = "Theme"
+    ThemeLabel.TextColor3 = COLORS.White
+    ThemeLabel.TextSize = 13
+    ThemeLabel.Font = Enum.Font.GothamBold
+    ThemeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    ThemeLabel.ZIndex = 11
+    ThemeLabel.LayoutOrder = 1
+    ThemeLabel.Parent = Content
+    
+    local ThemeContainer = Instance.new("Frame")
+    ThemeContainer.Size = UDim2.new(1, 0, 0, 80)
+    ThemeContainer.BackgroundTransparency = 1
+    ThemeContainer.ZIndex = 11
+    ThemeContainer.LayoutOrder = 2
+    ThemeContainer.Parent = Content
+    
+    local ThemeGrid = Instance.new("UIGridLayout")
+    ThemeGrid.CellSize = UDim2.new(0, 50, 0, 50)
+    ThemeGrid.CellPadding = UDim2.new(0, 10, 0, 10)
+    ThemeGrid.SortOrder = Enum.SortOrder.LayoutOrder
+    ThemeGrid.Parent = ThemeContainer
+    
+    local themeOrder = {"White", "Red", "Purple", "Yellow", "Green", "Blue"}
+    
+    for i, themeName in ipairs(themeOrder) do
+        local ThemeButton = Instance.new("TextButton")
+        ThemeButton.Size = UDim2.new(0, 50, 0, 50)
+        ThemeButton.BackgroundColor3 = THEMES[themeName]
+        ThemeButton.Text = ""
+        ThemeButton.AutoButtonColor = false
+        ThemeButton.ZIndex = 11
+        ThemeButton.LayoutOrder = i
+        ThemeButton.Parent = ThemeContainer
+        
+        local ThemeCorner = Instance.new("UICorner")
+        ThemeCorner.CornerRadius = UDim.new(0, 10)
+        ThemeCorner.Parent = ThemeButton
+        
+        local Selected = Instance.new("ImageLabel")
+        Selected.Size = UDim2.new(0, 20, 0, 20)
+        Selected.Position = UDim2.new(0.5, -10, 0.5, -10)
+        Selected.BackgroundTransparency = 1
+        Selected.Image = "rbxassetid://7733964126"
+        Selected.ImageColor3 = Color3.fromRGB(8, 8, 12)
+        Selected.Visible = self.CurrentTheme == themeName
+        Selected.ZIndex = 12
+        Selected.Parent = ThemeButton
+        
+        ThemeButton.MouseButton1Click:Connect(function()
+            self:ApplyTheme(themeName)
+            for _, child in pairs(ThemeContainer:GetChildren()) do
+                if child:IsA("TextButton") then
+                    local sel = child:FindFirstChildOfClass("ImageLabel")
+                    if sel then
+                        sel.Visible = false
+                    end
+                end
+            end
+            Selected.Visible = true
+        end)
+        
+        ThemeButton.MouseEnter:Connect(function()
+            TweenService:Create(ThemeButton, FAST_TWEEN, {Size = UDim2.new(0, 55, 0, 55)}):Play()
+        end)
+        
+        ThemeButton.MouseLeave:Connect(function()
+            TweenService:Create(ThemeButton, FAST_TWEEN, {Size = UDim2.new(0, 50, 0, 50)}):Play()
+        end)
+    end
+    
+    local AcrylicLabel = Instance.new("TextLabel")
+    AcrylicLabel.Size = UDim2.new(1, 0, 0, 20)
+    AcrylicLabel.BackgroundTransparency = 1
+    AcrylicLabel.Text = "Acrylic Effect"
+    AcrylicLabel.TextColor3 = COLORS.White
+    AcrylicLabel.TextSize = 13
+    AcrylicLabel.Font = Enum.Font.GothamBold
+    AcrylicLabel.TextXAlignment = Enum.TextXAlignment.Left
+    AcrylicLabel.ZIndex = 11
+    AcrylicLabel.LayoutOrder = 3
+    AcrylicLabel.Parent = Content
+    
+    local AcrylicToggle = Instance.new("Frame")
+    AcrylicToggle.Size = UDim2.new(1, 0, 0, 40)
+    AcrylicToggle.BackgroundColor3 = COLORS.Background
+    AcrylicToggle.BorderSizePixel = 0
+    AcrylicToggle.ZIndex = 11
+    AcrylicToggle.LayoutOrder = 4
+    AcrylicToggle.Parent = Content
+    
+    local AcrylicCorner = Instance.new("UICorner")
+    AcrylicCorner.CornerRadius = UDim.new(0, 10)
+    AcrylicCorner.Parent = AcrylicToggle
+    
+    local AcrylicText = Instance.new("TextLabel")
+    AcrylicText.Size = UDim2.new(0.7, 0, 1, 0)
+    AcrylicText.Position = UDim2.new(0, 14, 0, 0)
+    AcrylicText.BackgroundTransparency = 1
+    AcrylicText.Text = "Enable Transparency"
+    AcrylicText.TextColor3 = COLORS.White
+    AcrylicText.TextSize = 12
+    AcrylicText.Font = Enum.Font.GothamMedium
+    AcrylicText.TextXAlignment = Enum.TextXAlignment.Left
+    AcrylicText.ZIndex = 11
+    AcrylicText.Parent = AcrylicToggle
+    
+    local AcrylicButton = Instance.new("TextButton")
+    AcrylicButton.Size = UDim2.new(0, 42, 0, 22)
+    AcrylicButton.Position = UDim2.new(1, -56, 0.5, -11)
+    AcrylicButton.BackgroundColor3 = self.AcrylicEnabled and COLORS.Accent or COLORS.SurfaceLight
+    AcrylicButton.BorderSizePixel = 0
+    AcrylicButton.Text = ""
+    AcrylicButton.AutoButtonColor = false
+    AcrylicButton.ZIndex = 11
+    AcrylicButton.Parent = AcrylicToggle
+    
+    local AcrylicBtnCorner = Instance.new("UICorner")
+    AcrylicBtnCorner.CornerRadius = UDim.new(1, 0)
+    AcrylicBtnCorner.Parent = AcrylicButton
+    
+    local AcrylicCircle = Instance.new("Frame")
+    AcrylicCircle.Size = UDim2.new(0, 18, 0, 18)
+    AcrylicCircle.Position = self.AcrylicEnabled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    AcrylicCircle.BackgroundColor3 = self.AcrylicEnabled and Color3.fromRGB(8, 8, 12) or COLORS.Gray
+    AcrylicCircle.BorderSizePixel = 0
+    AcrylicCircle.ZIndex = 11
+    AcrylicCircle.Parent = AcrylicButton
+    
+    local AcrylicCircleCorner = Instance.new("UICorner")
+    AcrylicCircleCorner.CornerRadius = UDim.new(1, 0)
+    AcrylicCircleCorner.Parent = AcrylicCircle
+    
+    AcrylicButton.MouseButton1Click:Connect(function()
+        self.AcrylicEnabled = not self.AcrylicEnabled
+        self:ApplyAcrylic(self.AcrylicEnabled)
+        
+        if self.AcrylicEnabled then
+            TweenService:Create(AcrylicButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Accent}):Play()
+            TweenService:Create(AcrylicCircle, FAST_TWEEN, {
+                BackgroundColor3 = Color3.fromRGB(8, 8, 12),
+                Position = UDim2.new(1, -20, 0.5, -9)
+            }):Play()
+        else
+            TweenService:Create(AcrylicButton, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
+            TweenService:Create(AcrylicCircle, FAST_TWEEN, {
+                BackgroundColor3 = COLORS.Gray,
+                Position = UDim2.new(0, 2, 0.5, -9)
+            }):Play()
+        end
+    end)
+    
+    local KeybindLabel = Instance.new("TextLabel")
+    KeybindLabel.Size = UDim2.new(1, 0, 0, 20)
+    KeybindLabel.BackgroundTransparency = 1
+    KeybindLabel.Text = "Toggle Keybind"
+    KeybindLabel.TextColor3 = COLORS.White
+    KeybindLabel.TextSize = 13
+    KeybindLabel.Font = Enum.Font.GothamBold
+    KeybindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    KeybindLabel.ZIndex = 11
+    KeybindLabel.LayoutOrder = 5
+    KeybindLabel.Parent = Content
+    
+    local KeybindContainer = Instance.new("Frame")
+    KeybindContainer.Size = UDim2.new(1, 0, 0, 40)
+    KeybindContainer.BackgroundColor3 = COLORS.Background
+    KeybindContainer.BorderSizePixel = 0
+    KeybindContainer.ZIndex = 11
+    KeybindContainer.LayoutOrder = 6
+    KeybindContainer.Parent = Content
+    
+    local KeybindCorner = Instance.new("UICorner")
+    KeybindCorner.CornerRadius = UDim.new(0, 10)
+    KeybindCorner.Parent = KeybindContainer
+    
+    local KeybindText = Instance.new("TextLabel")
+    KeybindText.Size = UDim2.new(0.5, 0, 1, 0)
+    KeybindText.Position = UDim2.new(0, 14, 0, 0)
+    KeybindText.BackgroundTransparency = 1
+    KeybindText.Text = "Current Key"
+    KeybindText.TextColor3 = COLORS.White
+    KeybindText.TextSize = 12
+    KeybindText.Font = Enum.Font.GothamMedium
+    KeybindText.TextXAlignment = Enum.TextXAlignment.Left
+    KeybindText.ZIndex = 11
+    KeybindText.Parent = KeybindContainer
+    
+    local KeybindButton = Instance.new("TextButton")
+    KeybindButton.Size = UDim2.new(0, 120, 0, 30)
+    KeybindButton.Position = UDim2.new(1, -134, 0.5, -15)
+    KeybindButton.BackgroundColor3 = COLORS.SurfaceLight
+    KeybindButton.Text = self.MinimizeKey.Name
+    KeybindButton.TextColor3 = COLORS.White
+    KeybindButton.TextSize = 11
+    KeybindButton.Font = Enum.Font.GothamBold
+    KeybindButton.AutoButtonColor = false
+    KeybindButton.ZIndex = 11
+    KeybindButton.Parent = KeybindContainer
+    
+    local KeybindBtnCorner = Instance.new("UICorner")
+    KeybindBtnCorner.CornerRadius = UDim.new(0, 8)
+    KeybindBtnCorner.Parent = KeybindButton
+    
+    local isBinding = false
+    
+    KeybindButton.MouseButton1Click:Connect(function()
+        if isBinding then return end
+        isBinding = true
+        KeybindButton.Text = "Press a key..."
+        
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                self.MinimizeKey = input.KeyCode
+                KeybindButton.Text = input.KeyCode.Name
+                isBinding = false
+                connection:Disconnect()
+            end
+        end)
+    end)
+    
+    KeybindButton.MouseEnter:Connect(function()
+        TweenService:Create(KeybindButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Surface}):Play()
+    end)
+    
+    KeybindButton.MouseLeave:Connect(function()
+        TweenService:Create(KeybindButton, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
+    end)
+    
+    local SaveButton = Instance.new("TextButton")
+    SaveButton.Size = UDim2.new(1, 0, 0, 40)
+    SaveButton.BackgroundColor3 = COLORS.Accent
+    SaveButton.Text = "Save Configuration"
+    SaveButton.TextColor3 = Color3.fromRGB(8, 8, 12)
+    SaveButton.TextSize = 13
+    SaveButton.Font = Enum.Font.GothamBold
+    SaveButton.AutoButtonColor = false
+    SaveButton.ZIndex = 11
+    SaveButton.LayoutOrder = 7
+    SaveButton.Parent = Content
+    
+    local SaveCorner = Instance.new("UICorner")
+    SaveCorner.CornerRadius = UDim.new(0, 10)
+    SaveCorner.Parent = SaveButton
+    
+    SaveButton.MouseButton1Click:Connect(function()
+        self:SaveConfig()
+        SaveButton.Text = "Saved!"
+        wait(1)
+        SaveButton.Text = "Save Configuration"
+    end)
+    
+    SaveButton.MouseEnter:Connect(function()
+        TweenService:Create(SaveButton, FAST_TWEEN, {BackgroundColor3 = Color3.new(
+            COLORS.Accent.R * 0.9,
+            COLORS.Accent.G * 0.9,
+            COLORS.Accent.B * 0.9
+        )}):Play()
+    end)
+    
+    SaveButton.MouseLeave:Connect(function()
+        TweenService:Create(SaveButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Accent}):Play()
+    end)
+end
+
+function ModernUI:ApplyTheme(themeName)
+    if not THEMES[themeName] then return end
+    
+    self.CurrentTheme = themeName
+    COLORS.Accent = THEMES[themeName]
+    
+    for _, element in pairs(self.AccentElements) do
+        if element and element.Parent then
+            if element:IsA("ImageLabel") or element:IsA("ImageButton") then
+                TweenService:Create(element, FAST_TWEEN, {ImageColor3 = COLORS.Accent}):Play()
+            elseif element:IsA("TextLabel") or element:IsA("TextButton") then
+                TweenService:Create(element, FAST_TWEEN, {TextColor3 = COLORS.Accent}):Play()
+            else
+                TweenService:Create(element, FAST_TWEEN, {BackgroundColor3 = COLORS.Accent}):Play()
+            end
+        end
+    end
+    
+    self.ConfigData.Theme = themeName
+    self:SaveConfig()
+end
+
+function ModernUI:ApplyAcrylic(enabled)
+    local transparency = enabled and 0.3 or 0
+    TweenService:Create(self.MainFrame, SLOW_TWEEN, {BackgroundTransparency = transparency}):Play()
+    
+    self.ConfigData.Acrylic = enabled
+    self:SaveConfig()
+end
+
+function ModernUI:CreateTab(config)
     local Tab = {}
+    
+    config = config or {}
+    local name = config.Name or "Tab"
+    local icon = config.Icon or "rbxassetid://7733955511"
     
     local TabButton = Instance.new("TextButton")
     TabButton.Name = name
@@ -518,6 +977,8 @@ function ModernUI:CreateTab(name, icon)
     Indicator.Visible = false
     Indicator.Parent = TabButton
     
+    table.insert(self.AccentElements, Indicator)
+    
     local IndicatorCorner = Instance.new("UICorner")
     IndicatorCorner.CornerRadius = UDim.new(1, 0)
     IndicatorCorner.Parent = Indicator
@@ -526,7 +987,7 @@ function ModernUI:CreateTab(name, icon)
     IconLabel.Size = UDim2.new(0, 16, 0, 16)
     IconLabel.Position = UDim2.new(0, 12, 0.5, -8)
     IconLabel.BackgroundTransparency = 1
-    IconLabel.Image = icon or "rbxassetid://7733955511"
+    IconLabel.Image = icon
     IconLabel.ImageColor3 = COLORS.Gray
     IconLabel.Parent = TabButton
     
@@ -603,12 +1064,14 @@ function ModernUI:SelectTab(tab)
     TweenService:Create(tab.Button, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
     TweenService:Create(tab.IconLabel, FAST_TWEEN, {ImageColor3 = COLORS.Accent}):Play()
     TweenService:Create(tab.Label, FAST_TWEEN, {TextColor3 = COLORS.White}):Play()
-    TweenService:Create(tab.Indicator, FAST_TWEEN, {Size = UDim2.new(0, 2, 0, 18)}):Play()
     
     self.CurrentTab = tab
 end
 
-function ModernUI:CreateSection(tab, name)
+function ModernUI:AddSection(tab, config)
+    config = config or {}
+    local name = config.Name or "Section"
+    
     local Section = Instance.new("Frame")
     Section.Name = "Section"
     Section.Size = UDim2.new(1, 0, 0, 36)
@@ -639,6 +1102,8 @@ function ModernUI:CreateSection(tab, name)
     LeftLine.BorderSizePixel = 0
     LeftLine.Parent = Section
     
+    table.insert(self.AccentElements, LeftLine)
+    
     local LeftGradient = Instance.new("UIGradient")
     LeftGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, COLORS.Background),
@@ -659,6 +1124,8 @@ function ModernUI:CreateSection(tab, name)
     RightLine.BackgroundColor3 = COLORS.Accent
     RightLine.BorderSizePixel = 0
     RightLine.Parent = Section
+    
+    table.insert(self.AccentElements, RightLine)
     
     local RightGradient = Instance.new("UIGradient")
     RightGradient.Color = ColorSequence.new({
@@ -683,6 +1150,8 @@ function ModernUI:CreateSection(tab, name)
     SectionLabel.Font = Enum.Font.GothamBold
     SectionLabel.Parent = Section
     
+    table.insert(self.AccentElements, SectionLabel)
+    
     Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
         local newTotalWidth = Section.AbsoluteSize.X
         if newTotalWidth > 0 then
@@ -695,9 +1164,16 @@ function ModernUI:CreateSection(tab, name)
             SectionLabel.Position = UDim2.new(0.5, -textWidth / 2, 0, 0)
         end
     end)
+    
+    return Section
 end
 
-function ModernUI:CreateToggle(tab, name, default, callback)
+function ModernUI:AddToggle(tab, config)
+    config = config or {}
+    local name = config.Name or "Toggle"
+    local default = config.Default or false
+    local callback = config.Callback or function() end
+    
     local Toggle = Instance.new("Frame")
     Toggle.Name = "Toggle"
     Toggle.Size = UDim2.new(1, 0, 0, 40)
@@ -762,9 +1238,9 @@ function ModernUI:CreateToggle(tab, name, default, callback)
         end
     end
     
-    ToggleButton.MouseButton1Click:Connect(function()
-        toggled = not toggled
-        
+    table.insert(self.AccentElements, ToggleButton)
+    
+    local function updateToggle()
         if toggled then
             TweenService:Create(ToggleButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Accent}):Play()
             TweenService:Create(ToggleCircle, FAST_TWEEN, {
@@ -778,6 +1254,11 @@ function ModernUI:CreateToggle(tab, name, default, callback)
                 Position = UDim2.new(0, 2, 0.5, -9)
             }):Play()
         end
+    end
+    
+    ToggleButton.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        updateToggle()
         
         self.ConfigData[ConfigKey] = toggled
         self:SaveConfig()
@@ -798,7 +1279,13 @@ function ModernUI:CreateToggle(tab, name, default, callback)
     return Toggle
 end
 
-function ModernUI:CreateDropdown(tab, name, options, default, callback)
+function ModernUI:AddDropdown(tab, config)
+    config = config or {}
+    local name = config.Name or "Dropdown"
+    local options = config.Options or {"Option 1", "Option 2"}
+    local default = config.Default or options[1]
+    local callback = config.Callback or function() end
+    
     local Dropdown = Instance.new("Frame")
     Dropdown.Name = "Dropdown"
     Dropdown.Size = UDim2.new(1, 0, 0, 66)
@@ -932,6 +1419,8 @@ function ModernUI:CreateDropdown(tab, name, options, default, callback)
         Indicator.ZIndex = 6
         Indicator.Parent = OptionButton
         
+        table.insert(self.AccentElements, Indicator)
+        
         local IndicatorCorner = Instance.new("UICorner")
         IndicatorCorner.CornerRadius = UDim.new(1, 0)
         IndicatorCorner.Parent = Indicator
@@ -1005,7 +1494,13 @@ function ModernUI:CreateDropdown(tab, name, options, default, callback)
     return Dropdown
 end
 
-function ModernUI:CreateMultiDropdown(tab, name, options, defaults, callback)
+function ModernUI:AddMultiDropdown(tab, config)
+    config = config or {}
+    local name = config.Name or "Multi Dropdown"
+    local options = config.Options or {"Option 1", "Option 2"}
+    local defaults = config.Default or {}
+    local callback = config.Callback or function() end
+    
     local Dropdown = Instance.new("Frame")
     Dropdown.Name = "MultiDropdown"
     Dropdown.Size = UDim2.new(1, 0, 0, 66)
@@ -1047,6 +1542,17 @@ function ModernUI:CreateMultiDropdown(tab, name, options, defaults, callback)
         selectedOptions = self.ConfigData[ConfigKey]
     end
     
+    local SelectedLabel = Instance.new("TextLabel")
+    SelectedLabel.Size = UDim2.new(1, -45, 1, 0)
+    SelectedLabel.Position = UDim2.new(0, 14, 0, 0)
+    SelectedLabel.BackgroundTransparency = 1
+    SelectedLabel.Text = "None selected"
+    SelectedLabel.TextColor3 = COLORS.Gray
+    SelectedLabel.TextSize = 13
+    SelectedLabel.Font = Enum.Font.GothamMedium
+    SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SelectedLabel.Parent = DropdownButton
+    
     local function updateLabel()
         if #selectedOptions == 0 then
             SelectedLabel.Text = "None selected"
@@ -1060,18 +1566,9 @@ function ModernUI:CreateMultiDropdown(tab, name, options, defaults, callback)
         end
     end
     
-    local SelectedLabel = Instance.new("TextLabel")
-    SelectedLabel.Size = UDim2.new(1, -45, 1, 0)
-    SelectedLabel.Position = UDim2.new(0, 14, 0, 0)
-    SelectedLabel.BackgroundTransparency = 1
-    SelectedLabel.Text = "None selected"
-    SelectedLabel.TextColor3 = COLORS.Gray
-    SelectedLabel.TextSize = 13
-    SelectedLabel.Font = Enum.Font.GothamMedium
-    SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
-    SelectedLabel.Parent = DropdownButton
-    
     updateLabel()
+    
+    table.insert(self.AccentElements, SelectedLabel)
     
     local Arrow = Instance.new("ImageLabel")
     Arrow.Size = UDim2.new(0, 14, 0, 14)
@@ -1154,6 +1651,8 @@ function ModernUI:CreateMultiDropdown(tab, name, options, defaults, callback)
         Indicator.ZIndex = 6
         Indicator.Parent = OptionButton
         
+        table.insert(self.AccentElements, Indicator)
+        
         local IndicatorCorner = Instance.new("UICorner")
         IndicatorCorner.CornerRadius = UDim.new(1, 0)
         IndicatorCorner.Parent = Indicator
@@ -1225,7 +1724,11 @@ function ModernUI:CreateMultiDropdown(tab, name, options, defaults, callback)
     return Dropdown
 end
 
-function ModernUI:CreateButton(tab, name, callback)
+function ModernUI:AddButton(tab, config)
+    config = config or {}
+    local name = config.Name or "Button"
+    local callback = config.Callback or function() end
+    
     local Button = Instance.new("Frame")
     Button.Name = "Button"
     Button.Size = UDim2.new(1, 0, 0, 40)
@@ -1265,11 +1768,11 @@ function ModernUI:CreateButton(tab, name, callback)
     Arrow.Parent = ButtonFrame
     
     ButtonFrame.MouseButton1Click:Connect(function()
-        TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {Size = UDim2.new(0.98, 0, 0.92, 0)}):Play()
-        TweenService:Create(Arrow, TweenInfo.new(0.1), {Position = UDim2.new(1, -26, 0.5, -7)}):Play()
-        wait(0.1)
-        TweenService:Create(ButtonFrame, TweenInfo.new(0.1), {Size = UDim2.new(1, 0, 1, 0)}):Play()
-        TweenService:Create(Arrow, TweenInfo.new(0.1), {Position = UDim2.new(1, -28, 0.5, -7)}):Play()
+        TweenService:Create(ButtonFrame, TweenInfo.new(0.08), {Size = UDim2.new(0.98, 0, 0.92, 0)}):Play()
+        TweenService:Create(Arrow, TweenInfo.new(0.08), {Position = UDim2.new(1, -26, 0.5, -7)}):Play()
+        wait(0.08)
+        TweenService:Create(ButtonFrame, TweenInfo.new(0.08), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+        TweenService:Create(Arrow, TweenInfo.new(0.08), {Position = UDim2.new(1, -28, 0.5, -7)}):Play()
         
         if callback then
             callback()
@@ -1288,10 +1791,19 @@ function ModernUI:CreateButton(tab, name, callback)
         TweenService:Create(Label, FAST_TWEEN, {TextColor3 = COLORS.White}):Play()
     end)
     
+    table.insert(self.AccentElements, ButtonFrame)
+    
     return Button
 end
 
-function ModernUI:CreateSlider(tab, name, min, max, default, callback)
+function ModernUI:AddSlider(tab, config)
+    config = config or {}
+    local name = config.Name or "Slider"
+    local min = config.Min or 0
+    local max = config.Max or 100
+    local default = config.Default or min
+    local callback = config.Callback or function() end
+    
     local Slider = Instance.new("Frame")
     Slider.Name = "Slider"
     Slider.Size = UDim2.new(1, 0, 0, 76)
@@ -1324,6 +1836,8 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     ValueLabel.Font = Enum.Font.GothamBold
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
     ValueLabel.Parent = Slider
+    
+    table.insert(self.AccentElements, ValueLabel)
     
     local InputContainer = Instance.new("Frame")
     InputContainer.Size = UDim2.new(0, 80, 0, 26)
@@ -1364,6 +1878,8 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     SliderFill.BorderSizePixel = 0
     SliderFill.Parent = SliderTrack
     
+    table.insert(self.AccentElements, SliderFill)
+    
     local FillCorner = Instance.new("UICorner")
     FillCorner.CornerRadius = UDim.new(1, 0)
     FillCorner.Parent = SliderFill
@@ -1390,6 +1906,8 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     HandleShadow.SliceCenter = Rect.new(23, 23, 277, 277)
     HandleShadow.ZIndex = 0
     HandleShadow.Parent = SliderHandle
+    
+    table.insert(self.AccentElements, HandleShadow)
     
     local currentValue = default or min
     local dragging = false
@@ -1426,6 +1944,18 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     
     updateSlider(currentValue)
     
+    local function handleInput(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local relativeX = math.clamp(input.Position.X - SliderTrack.AbsolutePosition.X, 0, SliderTrack.AbsoluteSize.X)
+            local percent = relativeX / SliderTrack.AbsoluteSize.X
+            local value = min + (max - min) * percent
+            updateSlider(value)
+            
+            SliderHandle.Size = UDim2.new(0, 20, 0, 20)
+            SliderHandle.Position = UDim2.new(0, relativeX - 10, 0.5, -10)
+        end
+    end
+    
     SliderTrack.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -1440,25 +1970,38 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
         end
     end)
     
-    SliderTrack.InputChanged:Connect(function(input)
-        if dragging and input == activeInput then
-            local relativeX = math.clamp(input.Position.X - SliderTrack.AbsolutePosition.X, 0, SliderTrack.AbsoluteSize.X)
-            local percent = relativeX / SliderTrack.AbsoluteSize.X
-            local value = min + (max - min) * percent
-            updateSlider(value)
-            
-            SliderHandle.Size = UDim2.new(0, 20, 0, 20)
-            SliderHandle.Position = UDim2.new(0, relativeX - 10, 0.5, -10)
+    SliderTrack.InputChanged:Connect(handleInput)
+    UserInputService.InputChanged:Connect(handleInput)
+    
+    SliderTrack.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                activeInput = nil
+                local percent = (currentValue - min) / (max - min)
+                local xPos = percent * SliderTrack.AbsoluteSize.X
+                TweenService:Create(SliderHandle, FAST_TWEEN, {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(0, xPos - 8, 0.5, -8)}):Play()
+            end
         end
     end)
     
-    SliderTrack.InputEnded:Connect(function(input)
-        if input == activeInput then
-            dragging = false
-            activeInput = nil
-            local percent = (currentValue - min) / (max - min)
-            local xPos = percent * SliderTrack.AbsoluteSize.X
-            TweenService:Create(SliderHandle, FAST_TWEEN, {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(0, xPos - 8, 0.5, -8)}):Play()
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if dragging then
+                dragging = false
+                activeInput = nil
+                local percent = (currentValue - min) / (max - min)
+                local xPos = percent * SliderTrack.AbsoluteSize.X
+                TweenService:Create(SliderHandle, FAST_TWEEN, {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(0, xPos - 8, 0.5, -8)}):Play()
+            end
+        end
+    end)
+    
+    TextBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local value = tonumber(TextBox.Text)
+        if value then
+            value = math.clamp(value, min, max)
+            updateSlider(value)
         end
     end)
     
@@ -1495,7 +2038,13 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     return Slider
 end
 
-function ModernUI:CreateNotification(title, body, icon, duration)
+function ModernUI:Notify(config)
+    config = config or {}
+    local title = config.Title or "Notification"
+    local body = config.Body or "Message"
+    local icon = config.Icon or "rbxassetid://7733955511"
+    local duration = config.Duration or 5
+    
     local Notification = Instance.new("Frame")
     Notification.Name = "Notification"
     Notification.Size = UDim2.new(0, 320, 0, 80)
@@ -1546,7 +2095,7 @@ function ModernUI:CreateNotification(title, body, icon, duration)
     IconLabel.Size = UDim2.new(0, 24, 0, 24)
     IconLabel.Position = UDim2.new(0.5, -12, 0.5, -12)
     IconLabel.BackgroundTransparency = 1
-    IconLabel.Image = icon or "rbxassetid://7733955511"
+    IconLabel.Image = icon
     IconLabel.ImageColor3 = COLORS.Accent
     IconLabel.Parent = IconContainer
     
@@ -1575,11 +2124,10 @@ function ModernUI:CreateNotification(title, body, icon, duration)
     BodyLabel.TextWrapped = true
     BodyLabel.Parent = Notification
     
-    Notification.Position = UDim2.new(1, 0, 1, -90)
     local tweenIn = TweenService:Create(Notification, TWEEN_INFO, {Position = UDim2.new(1, -340, 1, -90)})
     tweenIn:Play()
     
-    task.delay(duration or 5, function()
+    task.delay(duration, function()
         local tweenOut = TweenService:Create(Notification, TWEEN_INFO, {Position = UDim2.new(1, 0, 1, -90)})
         tweenOut:Play()
         tweenOut.Completed:Connect(function()
@@ -1588,7 +2136,14 @@ function ModernUI:CreateNotification(title, body, icon, duration)
     end)
 end
 
-function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, callback)
+function ModernUI:AddFloatingButton(config)
+    config = config or {}
+    local shape = config.Shape or "circle"
+    local image = config.Image or "rbxassetid://7733955511"
+    local hasBorder = config.HasBorder or false
+    local borderColor = config.BorderColor or COLORS.Accent
+    local callback = config.Callback or function() end
+    
     local size = shape == "circle" and UDim2.new(0, 56, 0, 56) or UDim2.new(0, 56, 0, 56)
     
     local Button = Instance.new("TextButton")
@@ -1608,7 +2163,7 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
     
     if hasBorder then
         local Border = Instance.new("UIStroke")
-        Border.Color = borderColor or COLORS.Accent
+        Border.Color = borderColor
         Border.Thickness = 2
         Border.Parent = Button
     end
@@ -1629,7 +2184,7 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
     Icon.Size = UDim2.new(0, 28, 0, 28)
     Icon.Position = UDim2.new(0.5, -14, 0.5, -14)
     Icon.BackgroundTransparency = 1
-    Icon.Image = image or "rbxassetid://7733955511"
+    Icon.Image = image
     Icon.ImageColor3 = COLORS.White
     Icon.ZIndex = 51
     Icon.Parent = Button
@@ -1687,8 +2242,19 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
     return Button
 end
 
+function ModernUI:SetIcon(iconId)
+    self.Icon = iconId
+    if self.IconFrame then
+        self.IconFrame.Image = iconId
+    end
+end
+
 function ModernUI:SaveConfig()
     if not self.SaveFolder then return end
+    
+    self.ConfigData.Theme = self.CurrentTheme
+    self.ConfigData.Acrylic = self.AcrylicEnabled
+    self.ConfigData.MinimizeKey = self.MinimizeKey.Name
     
     local success, err = pcall(function()
         local json = game:GetService("HttpService"):JSONEncode(self.ConfigData)
@@ -1703,6 +2269,24 @@ function ModernUI:LoadConfig()
         if isfile(self.SaveFolder .. ".json") then
             local json = readfile(self.SaveFolder .. ".json")
             self.ConfigData = game:GetService("HttpService"):JSONDecode(json)
+            
+            if self.ConfigData.Theme then
+                self.CurrentTheme = self.ConfigData.Theme
+            end
+            
+            if self.ConfigData.Acrylic ~= nil then
+                self.AcrylicEnabled = self.ConfigData.Acrylic
+            end
+            
+            if self.ConfigData.MinimizeKey then
+                local keyName = self.ConfigData.MinimizeKey
+                for _, key in pairs(Enum.KeyCode:GetEnumItems()) do
+                    if key.Name == keyName then
+                        self.MinimizeKey = key
+                        break
+                    end
+                end
+            end
         end
     end)
 end
