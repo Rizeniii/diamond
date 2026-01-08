@@ -719,29 +719,90 @@ end
 function ModernUI:CreateSection(tab, name)
     local Section = Instance.new("Frame")
     Section.Name = "Section"
-    Section.Size = UDim2.new(1, 0, 0, 40)
+    Section.Size = UDim2.new(1, 0, 0, 45)
     Section.BackgroundTransparency = 1
     Section.Parent = tab.Container
     
-    local Line = Instance.new("Frame")
-    Line.Size = UDim2.new(1, 0, 0, 1)
-    Line.Position = UDim2.new(0, 0, 0.5, 0)
-    Line.BackgroundColor3 = COLORS.Border
-    Line.BorderSizePixel = 0
-    Line.Parent = Section
+    local TempLabel = Instance.new("TextLabel")
+    TempLabel.Text = "  " .. name .. "  "
+    TempLabel.TextSize = 13
+    TempLabel.Font = Enum.Font.GothamBold
+    TempLabel.Parent = Section
+    local textWidth = TempLabel.TextBounds.X
+    TempLabel:Destroy()
+    
+    local totalWidth = Section.AbsoluteSize.X
+    if totalWidth == 0 then
+        totalWidth = 560
+    end
+    
+    local leftLineWidth = (totalWidth - textWidth) / 2
+    local rightLineWidth = (totalWidth - textWidth) / 2
+    
+    local LeftLine = Instance.new("Frame")
+    LeftLine.Name = "LeftLine"
+    LeftLine.Size = UDim2.new(0, leftLineWidth, 0, 2)
+    LeftLine.Position = UDim2.new(0, 0, 0.5, -1)
+    LeftLine.BackgroundColor3 = COLORS.Accent
+    LeftLine.BorderSizePixel = 0
+    LeftLine.Parent = Section
+    
+    local LeftGradient = Instance.new("UIGradient")
+    LeftGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, COLORS.Background),
+        ColorSequenceKeypoint.new(0.5, COLORS.Accent),
+        ColorSequenceKeypoint.new(1, COLORS.Accent)
+    })
+    LeftGradient.Rotation = 0
+    LeftGradient.Parent = LeftLine
+    
+    local LeftCorner = Instance.new("UICorner")
+    LeftCorner.CornerRadius = UDim.new(1, 0)
+    LeftCorner.Parent = LeftLine
+    
+    local RightLine = Instance.new("Frame")
+    RightLine.Name = "RightLine"
+    RightLine.Size = UDim2.new(0, rightLineWidth, 0, 2)
+    RightLine.Position = UDim2.new(1, -rightLineWidth, 0.5, -1)
+    RightLine.BackgroundColor3 = COLORS.Accent
+    RightLine.BorderSizePixel = 0
+    RightLine.Parent = Section
+    
+    local RightGradient = Instance.new("UIGradient")
+    RightGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, COLORS.Accent),
+        ColorSequenceKeypoint.new(0.5, COLORS.Accent),
+        ColorSequenceKeypoint.new(1, COLORS.Background)
+    })
+    RightGradient.Rotation = 0
+    RightGradient.Parent = RightLine
+    
+    local RightCorner = Instance.new("UICorner")
+    RightCorner.CornerRadius = UDim.new(1, 0)
+    RightCorner.Parent = RightLine
     
     local SectionLabel = Instance.new("TextLabel")
-    SectionLabel.Size = UDim2.new(0, 0, 1, 0)
-    SectionLabel.Position = UDim2.new(0, 0, 0, 0)
-    SectionLabel.BackgroundColor3 = COLORS.Background
-    SectionLabel.BorderSizePixel = 0
-    SectionLabel.Text = "  " .. name .. "  "
-    SectionLabel.TextColor3 = COLORS.Gray
-    SectionLabel.TextSize = 12
-    SectionLabel.Font = Enum.Font.GothamMedium
+    SectionLabel.Size = UDim2.new(0, textWidth, 1, 0)
+    SectionLabel.Position = UDim2.new(0.5, -textWidth / 2, 0, 0)
+    SectionLabel.BackgroundTransparency = 1
+    SectionLabel.Text = name
+    SectionLabel.TextColor3 = COLORS.Accent
+    SectionLabel.TextSize = 13
+    SectionLabel.Font = Enum.Font.GothamBold
     SectionLabel.Parent = Section
     
-    SectionLabel.Size = UDim2.new(0, SectionLabel.TextBounds.X, 1, 0)
+    Section:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        local newTotalWidth = Section.AbsoluteSize.X
+        if newTotalWidth > 0 then
+            local newLeftWidth = (newTotalWidth - textWidth) / 2
+            local newRightWidth = (newTotalWidth - textWidth) / 2
+            
+            LeftLine.Size = UDim2.new(0, newLeftWidth, 0, 2)
+            RightLine.Size = UDim2.new(0, newRightWidth, 0, 2)
+            RightLine.Position = UDim2.new(1, -newRightWidth, 0.5, -1)
+            SectionLabel.Position = UDim2.new(0.5, -textWidth / 2, 0, 0)
+        end
+    end)
 end
 
 function ModernUI:CreateToggle(tab, name, default, callback)
