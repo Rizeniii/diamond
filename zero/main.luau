@@ -32,6 +32,7 @@ function ModernUI.new(title, subtitle)
     self.ScreenGui.Name = "ModernUILibrary"
     self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     self.ScreenGui.ResetOnSpawn = false
+    self.ScreenGui.DisplayOrder = 999
     
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
@@ -345,11 +346,13 @@ function ModernUI:MakeResizable()
 end
 
 function ModernUI:SetupMinimizeKey()
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if not gameProcessed and input.KeyCode == self.MinimizeKey then
-            self:ToggleUI()
-        end
-    end)
+    if UserInputService.KeyboardEnabled then
+        UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if not gameProcessed and input.KeyCode == self.MinimizeKey then
+                self:ToggleUI()
+            end
+        end)
+    end
 end
 
 function ModernUI:ToggleUI()
@@ -1390,6 +1393,7 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     
     local currentValue = default or min
     local dragging = false
+    local activeInput = nil
     
     local ConfigKey = "Slider_" .. name
     if self.ConfigData[ConfigKey] ~= nil then
@@ -1407,8 +1411,10 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
         TextBox.Text = displayValue
         
         local percent = (value - min) / (max - min)
-        TweenService:Create(SliderFill, FAST_TWEEN, {Size = UDim2.new(percent, 0, 1, 0)}):Play()
-        TweenService:Create(SliderHandle, FAST_TWEEN, {Position = UDim2.new(percent, -8, 0.5, -8)}):Play()
+        local xPos = percent * SliderTrack.AbsoluteSize.X
+        
+        SliderFill.Size = UDim2.new(0, xPos, 1, 0)
+        SliderHandle.Position = UDim2.new(0, xPos - 8, 0.5, -8)
         
         self.ConfigData[ConfigKey] = currentValue
         self:SaveConfig()
@@ -1423,34 +1429,36 @@ function ModernUI:CreateSlider(tab, name, min, max, default, callback)
     SliderTrack.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
-            local relativeX = math.clamp(input.Position.X - SliderTrack.AbsolutePosition.X, 0, SliderTrack.AbsoluteSize.X)
-            local percent = relativeX / SliderTrack.AbsoluteSize.X
-            local value = min + (max - min) * percent
-            updateSlider(value)
-            
-            TweenService:Create(SliderHandle, FAST_TWEEN, {Size = UDim2.new(0, 20, 0, 20), Position = UDim2.new(percent, -10, 0.5, -10)}):Play()
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            activeInput = input
             local relativeX = math.clamp(input.Position.X - SliderTrack.AbsolutePosition.X, 0, SliderTrack.AbsoluteSize.X)
             local percent = relativeX / SliderTrack.AbsoluteSize.X
             local value = min + (max - min) * percent
             updateSlider(value)
             
             SliderHandle.Size = UDim2.new(0, 20, 0, 20)
-            SliderHandle.Position = UDim2.new(percent, -10, 0.5, -10)
+            SliderHandle.Position = UDim2.new(0, relativeX - 10, 0.5, -10)
         end
     end)
     
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            if dragging then
-                dragging = false
-                local percent = (currentValue - min) / (max - min)
-                TweenService:Create(SliderHandle, FAST_TWEEN, {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(percent, -8, 0.5, -8)}):Play()
-            end
+    SliderTrack.InputChanged:Connect(function(input)
+        if dragging and input == activeInput then
+            local relativeX = math.clamp(input.Position.X - SliderTrack.AbsolutePosition.X, 0, SliderTrack.AbsoluteSize.X)
+            local percent = relativeX / SliderTrack.AbsoluteSize.X
+            local value = min + (max - min) * percent
+            updateSlider(value)
+            
+            SliderHandle.Size = UDim2.new(0, 20, 0, 20)
+            SliderHandle.Position = UDim2.new(0, relativeX - 10, 0.5, -10)
+        end
+    end)
+    
+    SliderTrack.InputEnded:Connect(function(input)
+        if input == activeInput then
+            dragging = false
+            activeInput = nil
+            local percent = (currentValue - min) / (max - min)
+            local xPos = percent * SliderTrack.AbsoluteSize.X
+            TweenService:Create(SliderHandle, FAST_TWEEN, {Size = UDim2.new(0, 16, 0, 16), Position = UDim2.new(0, xPos - 8, 0.5, -8)}):Play()
         end
     end)
     
@@ -1591,6 +1599,7 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
     Button.BorderSizePixel = 0
     Button.Text = ""
     Button.AutoButtonColor = false
+    Button.ZIndex = 50
     Button.Parent = self.ScreenGui
     
     local Corner = Instance.new("UICorner")
@@ -1613,7 +1622,7 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
     Shadow.ImageTransparency = 0.6
     Shadow.ScaleType = Enum.ScaleType.Slice
     Shadow.SliceCenter = Rect.new(23, 23, 277, 277)
-    Shadow.ZIndex = 0
+    Shadow.ZIndex = 49
     Shadow.Parent = Button
     
     local Icon = Instance.new("ImageLabel")
@@ -1622,23 +1631,29 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
     Icon.BackgroundTransparency = 1
     Icon.Image = image or "rbxassetid://7733955511"
     Icon.ImageColor3 = COLORS.White
+    Icon.ZIndex = 51
     Icon.Parent = Button
     
     local dragging = false
     local dragStart = nil
     local startPos = nil
+    local wasDragged = false
     
     Button.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = Button.Position
+            wasDragged = false
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
+            if delta.Magnitude > 5 then
+                wasDragged = true
+            end
             Button.Position = UDim2.new(
                 startPos.X.Scale,
                 startPos.X.Offset + delta.X,
@@ -1652,7 +1667,7 @@ function ModernUI:CreateFloatingButton(shape, image, hasBorder, borderColor, cal
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             if dragging then
                 dragging = false
-                if callback then
+                if not wasDragged and callback then
                     callback()
                 end
             end
