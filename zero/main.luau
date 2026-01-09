@@ -95,66 +95,6 @@ function ModernUI.new(config)
     return self
 end
 
-function Window:CreateFloatingButton(config)
-	config = config or {}
-
-	local Icon = config.Icon or "rbxassetid://116008738959904"
-	local Position = config.Position or UDim2.new(0, 15, 0.5, -25)
-
-	local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-
-	local FloatingGui = Instance.new("ScreenGui")
-	FloatingGui.Name = "FluentFloatingButton"
-	FloatingGui.ResetOnSpawn = false
-	FloatingGui.Parent = playerGui
-
-	local Button = Instance.new("ImageButton")
-	Button.Parent = FloatingGui
-	Button.Size = UDim2.new(0, 50, 0, 50)
-	Button.Position = Position
-	Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	Button.BorderSizePixel = 0
-	Button.Image = Icon
-
-	local Corner = Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(0, 12)
-	Corner.Parent = Button
-
-	local dragging, dragStart, startPos
-
-	Button.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-			dragStart = input.Position
-			startPos = Button.Position
-		end
-	end)
-
-	Button.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = false
-		end
-	end)
-
-	UserInputService.InputChanged:Connect(function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-			local delta = input.Position - dragStart
-			Button.Position = UDim2.new(
-				startPos.X.Scale,
-				startPos.X.Offset + delta.X,
-				startPos.Y.Scale,
-				startPos.Y.Offset + delta.Y
-			)
-		end
-	end)
-
-	local visible = true
-	Button.MouseButton1Click:Connect(function()
-		visible = not visible
-		Window.Root.Visible = visible
-	end)
-end
-
 function ModernUI:CreateHeader()
     local Header = Instance.new("Frame")
     Header.Name = "Header"
@@ -2196,110 +2136,64 @@ function ModernUI:Notify(config)
     end)
 end
 
-function ModernUI:AddFloatingButton(config)
-    config = config or {}
-    local shape = config.Shape or "circle"
-    local image = config.Image or "rbxassetid://7733955511"
-    local hasBorder = config.HasBorder or false
-    local borderColor = config.BorderColor or COLORS.Accent
-    local callback = config.Callback or function() end
-    
-    local size = shape == "circle" and UDim2.new(0, 56, 0, 56) or UDim2.new(0, 56, 0, 56)
-    
-    local Button = Instance.new("TextButton")
-    Button.Name = "FloatingButton"
-    Button.Size = size
-    Button.Position = UDim2.new(1, -80, 1, -80)
-    Button.BackgroundColor3 = COLORS.Surface
-    Button.BorderSizePixel = 0
-    Button.Text = ""
-    Button.AutoButtonColor = false
-    Button.ZIndex = 50
-    Button.Parent = self.ScreenGui
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = shape == "circle" and UDim.new(1, 0) or UDim.new(0, 16)
-    Corner.Parent = Button
-    
-    if hasBorder then
-        local Border = Instance.new("UIStroke")
-        Border.Color = borderColor
-        Border.Thickness = 2
-        Border.Parent = Button
-    end
-    
-    local Shadow = Instance.new("ImageLabel")
-    Shadow.Size = UDim2.new(1, 24, 1, 24)
-    Shadow.Position = UDim2.new(0, -12, 0, -12)
-    Shadow.BackgroundTransparency = 1
-    Shadow.Image = "rbxassetid://5554236805"
-    Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    Shadow.ImageTransparency = 0.6
-    Shadow.ScaleType = Enum.ScaleType.Slice
-    Shadow.SliceCenter = Rect.new(23, 23, 277, 277)
-    Shadow.ZIndex = 49
-    Shadow.Parent = Button
-    
-    local Icon = Instance.new("ImageLabel")
-    Icon.Size = UDim2.new(0, 28, 0, 28)
-    Icon.Position = UDim2.new(0.5, -14, 0.5, -14)
-    Icon.BackgroundTransparency = 1
-    Icon.Image = image
-    Icon.ImageColor3 = COLORS.White
-    Icon.ZIndex = 51
-    Icon.Parent = Button
-    
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-    local wasDragged = false
-    
-    Button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = Button.Position
-            wasDragged = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            if delta.Magnitude > 5 then
-                wasDragged = true
-            end
-            Button.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            if dragging then
-                dragging = false
-                if not wasDragged and callback then
-                    callback()
-                end
-            end
-        end
-    end)
-    
-    Button.MouseEnter:Connect(function()
-        TweenService:Create(Button, FAST_TWEEN, {BackgroundColor3 = COLORS.Accent, Size = UDim2.new(0, 60, 0, 60)}):Play()
-        TweenService:Create(Icon, FAST_TWEEN, {ImageColor3 = Color3.fromRGB(8, 8, 12)}):Play()
-    end)
-    
-    Button.MouseLeave:Connect(function()
-        TweenService:Create(Button, FAST_TWEEN, {BackgroundColor3 = COLORS.Surface, Size = size}):Play()
-        TweenService:Create(Icon, FAST_TWEEN, {ImageColor3 = COLORS.White}):Play()
-    end)
-    
-    return Button
+function Window:CreateFloatingButton(config)
+	config = config or {}
+
+	local Icon = config.Icon or "rbxassetid://116008738959904"
+	local Position = config.Position or UDim2.new(0, 15, 0.5, -25)
+
+	local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+	local FloatingGui = Instance.new("ScreenGui")
+	FloatingGui.Name = "DiamondFloatingButton"
+	FloatingGui.ResetOnSpawn = false
+	FloatingGui.Parent = playerGui
+
+	local Button = Instance.new("ImageButton")
+	Button.Parent = FloatingGui
+	Button.Size = UDim2.new(0, 50, 0, 50)
+	Button.Position = Position
+	Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Button.BorderSizePixel = 0
+	Button.Image = Icon
+
+	local Corner = Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(0, 12)
+	Corner.Parent = Button
+
+	local dragging, dragStart, startPos
+
+	Button.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			dragStart = input.Position
+			startPos = Button.Position
+		end
+	end)
+
+	Button.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = false
+		end
+	end)
+
+	game:GetService("UserInputService").InputChanged:Connect(function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local delta = input.Position - dragStart
+			Button.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	local visible = true
+	Button.MouseButton1Click:Connect(function()
+		visible = not visible
+		self.Root.Visible = visible
+	end)
 end
 
 function ModernUI:SetIcon(iconId)
