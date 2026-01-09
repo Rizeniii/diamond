@@ -1,4 +1,582 @@
-local Divider = Instance.new("Frame")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local ModernUI = {}
+ModernUI.__index = ModernUI
+
+local THEMES = {
+    White = Color3.fromRGB(255, 255, 255),
+    Red = Color3.fromRGB(255, 70, 70),
+    Purple = Color3.fromRGB(170, 100, 255),
+    Yellow = Color3.fromRGB(255, 220, 70),
+    Green = Color3.fromRGB(70, 255, 150),
+    Blue = Color3.fromRGB(70, 150, 255)
+}
+
+local COLORS = {
+    Background = Color3.fromRGB(0, 0, 0),
+    Surface = Color3.fromRGB(12, 12, 18),
+    SurfaceLight = Color3.fromRGB(18, 18, 24),
+    Border = Color3.fromRGB(30, 30, 40),
+    White = Color3.fromRGB(255, 255, 255),
+    Gray = Color3.fromRGB(140, 140, 150),
+    DarkGray = Color3.fromRGB(80, 80, 90),
+    Accent = Color3.fromRGB(255, 255, 255)
+}
+
+local TWEEN_INFO = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local FAST_TWEEN = TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local SLOW_TWEEN = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+function ModernUI.new(config)
+    local self = setmetatable({}, ModernUI)
+    
+    config = config or {}
+    self.Title = config.Title or "Modern UI"
+    self.SubTitle = config.SubTitle or "Library"
+    self.Icon = config.Icon or "rbxassetid://7733955511"
+    self.SaveFolder = "ModernUIConfig"
+    self.AcrylicEnabled = false
+    self.CurrentTheme = "White"
+    self.FloatingButton = nil
+    
+    self.ScreenGui = Instance.new("ScreenGui")
+    self.ScreenGui.Name = "ModernUILibrary"
+    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    self.ScreenGui.ResetOnSpawn = false
+    self.ScreenGui.DisplayOrder = 999
+    
+    self.MainFrame = Instance.new("Frame")
+    self.MainFrame.Name = "MainFrame"
+    self.MainFrame.Size = UDim2.new(0, 720, 0, 420)
+    self.MainFrame.Position = UDim2.new(0.5, -360, 0.5, -210)
+    self.MainFrame.BackgroundColor3 = COLORS.Background
+    self.MainFrame.BorderSizePixel = 0
+    self.MainFrame.Parent = self.ScreenGui
+    self.MainFrame.Active = true
+    self.MainFrame.ClipsDescendants = true
+    
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 16)
+    UICorner.Parent = self.MainFrame
+    
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Name = "Shadow"
+    Shadow.Size = UDim2.new(1, 40, 1, 40)
+    Shadow.Position = UDim2.new(0, -20, 0, -20)
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxassetid://5554236805"
+    Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    Shadow.ImageTransparency = 0.5
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(23, 23, 277, 277)
+    Shadow.ZIndex = 0
+    Shadow.Parent = self.MainFrame
+    
+    self:CreateHeader()
+    self:CreateSidebar()
+    self:CreateContentArea()
+    self:MakeDraggable()
+    self:MakeResizable()
+    
+    self.Tabs = {}
+    self.CurrentTab = nil
+    self.ConfigData = {}
+    self.AccentElements = {}
+    
+    self.ScreenGui.Parent = game:GetService("CoreGui")
+    
+    self:LoadConfig()
+    self:ApplyTheme(self.CurrentTheme)
+    self:ApplyAcrylic(self.AcrylicEnabled)
+    
+    return self
+end
+
+function ModernUI:CreateHeader()
+    local Header = Instance.new("Frame")
+    Header.Name = "Header"
+    Header.Size = UDim2.new(1, 0, 0, 55)
+    Header.BackgroundTransparency = 1
+    Header.BorderSizePixel = 0
+    Header.Parent = self.MainFrame
+    
+    local IconFrame = Instance.new("ImageLabel")
+    IconFrame.Name = "Icon"
+    IconFrame.Size = UDim2.new(0, 26, 0, 26)
+    IconFrame.Position = UDim2.new(0, 20, 0.5, -13)
+    IconFrame.BackgroundTransparency = 1
+    IconFrame.Image = self.Icon
+    IconFrame.ImageColor3 = COLORS.White
+    IconFrame.Parent = Header
+    
+    self.IconFrame = IconFrame
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Name = "Title"
+    TitleLabel.Size = UDim2.new(0, 300, 0, 20)
+    TitleLabel.Position = UDim2.new(0, 56, 0, 12)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = self.Title
+    TitleLabel.TextColor3 = COLORS.White
+    TitleLabel.TextSize = 14
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = Header
+    
+    local SubtitleLabel = Instance.new("TextLabel")
+    SubtitleLabel.Name = "Subtitle"
+    SubtitleLabel.Size = UDim2.new(0, 300, 0, 16)
+    SubtitleLabel.Position = UDim2.new(0, 56, 0, 32)
+    SubtitleLabel.BackgroundTransparency = 1
+    SubtitleLabel.Text = self.SubTitle
+    SubtitleLabel.TextColor3 = COLORS.Gray
+    SubtitleLabel.TextSize = 11
+    SubtitleLabel.Font = Enum.Font.Gotham
+    SubtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SubtitleLabel.Parent = Header
+    
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Name = "Close"
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(1, -42, 0.5, -15)
+    CloseButton.BackgroundTransparency = 1
+    CloseButton.Text = ""
+    CloseButton.AutoButtonColor = false
+    CloseButton.Parent = Header
+    
+    local CloseIcon = Instance.new("ImageLabel")
+    CloseIcon.Size = UDim2.new(0, 16, 0, 16)
+    CloseIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
+    CloseIcon.BackgroundTransparency = 1
+    CloseIcon.Image = "rbxassetid://7734053426"
+    CloseIcon.ImageColor3 = COLORS.Gray
+    CloseIcon.Parent = CloseButton
+    
+    CloseButton.MouseButton1Click:Connect(function()
+        self:ShowConfirmDialog()
+    end)
+    
+    CloseButton.MouseEnter:Connect(function()
+        TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+    end)
+    
+    CloseButton.MouseLeave:Connect(function()
+        TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = COLORS.Gray}):Play()
+    end)
+    
+    local SettingsButton = Instance.new("TextButton")
+    SettingsButton.Name = "Settings"
+    SettingsButton.Size = UDim2.new(0, 30, 0, 30)
+    SettingsButton.Position = UDim2.new(1, -78, 0.5, -15)
+    SettingsButton.BackgroundTransparency = 1
+    SettingsButton.Text = ""
+    SettingsButton.AutoButtonColor = false
+    SettingsButton.Parent = Header
+    
+    local SettingsIcon = Instance.new("ImageLabel")
+    SettingsIcon.Size = UDim2.new(0, 16, 0, 16)
+    SettingsIcon.Position = UDim2.new(0.5, -8, 0.5, -8)
+    SettingsIcon.BackgroundTransparency = 1
+    SettingsIcon.Image = "rbxassetid://7734053495"
+    SettingsIcon.ImageColor3 = COLORS.Gray
+    SettingsIcon.Parent = SettingsButton
+    
+    SettingsButton.MouseButton1Click:Connect(function()
+        self:ShowSettingsWindow()
+    end)
+    
+    SettingsButton.MouseEnter:Connect(function()
+        TweenService:Create(SettingsIcon, FAST_TWEEN, {ImageColor3 = COLORS.White, Rotation = 90}):Play()
+    end)
+    
+    SettingsButton.MouseLeave:Connect(function()
+        TweenService:Create(SettingsIcon, FAST_TWEEN, {ImageColor3 = COLORS.Gray, Rotation = 0}):Play()
+    end)
+    
+    local Divider = Instance.new("Frame")
+    Divider.Name = "Divider"
+    Divider.Size = UDim2.new(1, -32, 0, 1)
+    Divider.Position = UDim2.new(0, 16, 1, -1)
+    Divider.BackgroundColor3 = COLORS.Border
+    Divider.BorderSizePixel = 0
+    Divider.Parent = Header
+end
+
+function ModernUI:CreateSidebar()
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 160, 1, -70)
+    Sidebar.Position = UDim2.new(0, 16, 0, 62)
+    Sidebar.BackgroundTransparency = 1
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = self.MainFrame
+    
+    local TabList = Instance.new("ScrollingFrame")
+    TabList.Name = "TabList"
+    TabList.Size = UDim2.new(1, 0, 1, 0)
+    TabList.BackgroundTransparency = 1
+    TabList.BorderSizePixel = 0
+    TabList.ScrollBarThickness = 0
+    TabList.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabList.ScrollingDirection = Enum.ScrollingDirection.Y
+    TabList.Parent = Sidebar
+    
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ListLayout.Padding = UDim.new(0, 6)
+    ListLayout.Parent = TabList
+    
+    ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        TabList.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 8)
+    end)
+    
+    self.TabList = TabList
+end
+
+function ModernUI:CreateContentArea()
+    local ContentArea = Instance.new("ScrollingFrame")
+    ContentArea.Name = "ContentArea"
+    ContentArea.Size = UDim2.new(1, -208, 1, -82)
+    ContentArea.Position = UDim2.new(0, 192, 0, 62)
+    ContentArea.BackgroundTransparency = 1
+    ContentArea.BorderSizePixel = 0
+    ContentArea.ScrollBarThickness = 3
+    ContentArea.ScrollBarImageColor3 = COLORS.Border
+    ContentArea.CanvasSize = UDim2.new(0, 0, 0, 0)
+    ContentArea.ScrollingDirection = Enum.ScrollingDirection.Y
+    ContentArea.Parent = self.MainFrame
+    
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ListLayout.Padding = UDim.new(0, 10)
+    ListLayout.Parent = ContentArea
+    
+    local Padding = Instance.new("UIPadding")
+    Padding.PaddingLeft = UDim.new(0, 0)
+    Padding.PaddingRight = UDim.new(0, 16)
+    Padding.PaddingTop = UDim.new(0, 0)
+    Padding.PaddingBottom = UDim.new(0, 16)
+    Padding.Parent = ContentArea
+    
+    ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ContentArea.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 32)
+    end)
+    
+    self.ContentArea = ContentArea
+end
+
+function ModernUI:MakeDraggable()
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    local Header = self.MainFrame:FindFirstChild("Header")
+    
+    local function onInputBegan(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = self.MainFrame.Position
+        end
+    end
+    
+    Header.InputBegan:Connect(onInputBegan)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            self.MainFrame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+function ModernUI:MakeResizable()
+    local resizing = false
+    local resizeStart = nil
+    local startSize = nil
+    
+    local ResizeHandle = Instance.new("Frame")
+    ResizeHandle.Name = "ResizeHandle"
+    ResizeHandle.Size = UDim2.new(0, 16, 0, 16)
+    ResizeHandle.Position = UDim2.new(1, -16, 1, -16)
+    ResizeHandle.BackgroundTransparency = 1
+    ResizeHandle.Parent = self.MainFrame
+    
+    ResizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = true
+            resizeStart = input.Position
+            startSize = self.MainFrame.Size
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - resizeStart
+            local newWidth = math.max(500, startSize.X.Offset + delta.X)
+            local newHeight = math.max(300, startSize.Y.Offset + delta.Y)
+            self.MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = false
+        end
+    end)
+end
+
+function ModernUI:ToggleUI()
+    local isVisible = self.MainFrame.Visible
+    if isVisible then
+        TweenService:Create(self.MainFrame, FAST_TWEEN, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}):Play()
+        wait(0.25)
+        self.MainFrame.Visible = false
+    else
+        self.MainFrame.Visible = true
+        self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
+        self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        TweenService:Create(self.MainFrame, TWEEN_INFO, {Size = UDim2.new(0, 720, 0, 420), Position = UDim2.new(0.5, -360, 0.5, -210)}):Play()
+    end
+end
+
+function ModernUI:ShowConfirmDialog()
+    local Overlay = Instance.new("Frame")
+    Overlay.Name = "ConfirmOverlay"
+    Overlay.Size = UDim2.new(1, 0, 1, 0)
+    Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Overlay.BackgroundTransparency = 1
+    Overlay.BorderSizePixel = 0
+    Overlay.ZIndex = 10
+    Overlay.Parent = self.MainFrame
+    
+    TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 0.6}):Play()
+    
+    local Dialog = Instance.new("Frame")
+    Dialog.Name = "Dialog"
+    Dialog.Size = UDim2.new(0, 300, 0, 0)
+    Dialog.Position = UDim2.new(0.5, -150, 0.5, -75)
+    Dialog.BackgroundColor3 = COLORS.Surface
+    Dialog.BorderSizePixel = 0
+    Dialog.ZIndex = 11
+    Dialog.Parent = Overlay
+    
+    local DialogCorner = Instance.new("UICorner")
+    DialogCorner.CornerRadius = UDim.new(0, 14)
+    DialogCorner.Parent = Dialog
+    
+    TweenService:Create(Dialog, TWEEN_INFO, {Size = UDim2.new(0, 300, 0, 150)}):Play()
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -32, 0, 24)
+    Title.Position = UDim2.new(0, 16, 0, 16)
+    Title.BackgroundTransparency = 1
+    Title.Text = "Confirm Close"
+    Title.TextColor3 = COLORS.White
+    Title.TextSize = 14
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 11
+    Title.Parent = Dialog
+    
+    local Message = Instance.new("TextLabel")
+    Message.Size = UDim2.new(1, -32, 0, 40)
+    Message.Position = UDim2.new(0, 16, 0, 45)
+    Message.BackgroundTransparency = 1
+    Message.Text = "Are you sure you want to close?"
+    Message.TextColor3 = COLORS.Gray
+    Message.TextSize = 12
+    Message.Font = Enum.Font.Gotham
+    Message.TextWrapped = true
+    Message.TextXAlignment = Enum.TextXAlignment.Left
+    Message.TextYAlignment = Enum.TextYAlignment.Top
+    Message.ZIndex = 11
+    Message.Parent = Dialog
+    
+    local ButtonContainer = Instance.new("Frame")
+    ButtonContainer.Size = UDim2.new(1, -32, 0, 38)
+    ButtonContainer.Position = UDim2.new(0, 16, 1, -54)
+    ButtonContainer.BackgroundTransparency = 1
+    ButtonContainer.ZIndex = 11
+    ButtonContainer.Parent = Dialog
+    
+    local ButtonLayout = Instance.new("UIListLayout")
+    ButtonLayout.FillDirection = Enum.FillDirection.Horizontal
+    ButtonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    ButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ButtonLayout.Padding = UDim.new(0, 8)
+    ButtonLayout.Parent = ButtonContainer
+    
+    local CancelButton = Instance.new("TextButton")
+    CancelButton.Name = "Cancel"
+    CancelButton.Size = UDim2.new(0, 120, 1, 0)
+    CancelButton.BackgroundColor3 = COLORS.SurfaceLight
+    CancelButton.Text = "Cancel"
+    CancelButton.TextColor3 = COLORS.White
+    CancelButton.TextSize = 13
+    CancelButton.Font = Enum.Font.GothamMedium
+    CancelButton.AutoButtonColor = false
+    CancelButton.ZIndex = 11
+    CancelButton.LayoutOrder = 1
+    CancelButton.Parent = ButtonContainer
+    
+    local CancelCorner = Instance.new("UICorner")
+    CancelCorner.CornerRadius = UDim.new(0, 8)
+    CancelCorner.Parent = CancelButton
+    
+    local ConfirmButton = Instance.new("TextButton")
+    ConfirmButton.Name = "Confirm"
+    ConfirmButton.Size = UDim2.new(0, 120, 1, 0)
+    ConfirmButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    ConfirmButton.Text = "Close"
+    ConfirmButton.TextColor3 = COLORS.White
+    ConfirmButton.TextSize = 13
+    ConfirmButton.Font = Enum.Font.GothamBold
+    ConfirmButton.AutoButtonColor = false
+    ConfirmButton.ZIndex = 11
+    ConfirmButton.LayoutOrder = 2
+    ConfirmButton.Parent = ButtonContainer
+    
+    local ConfirmCorner = Instance.new("UICorner")
+    ConfirmCorner.CornerRadius = UDim.new(0, 8)
+    ConfirmCorner.Parent = ConfirmButton
+    
+    ConfirmButton.MouseButton1Click:Connect(function()
+        self:SaveConfig()
+        TweenService:Create(Dialog, FAST_TWEEN, {Size = UDim2.new(0, 300, 0, 0)}):Play()
+        TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 1}):Play()
+        wait(0.2)
+        self.ScreenGui:Destroy()
+    end)
+    
+    CancelButton.MouseButton1Click:Connect(function()
+        TweenService:Create(Dialog, FAST_TWEEN, {Size = UDim2.new(0, 300, 0, 0)}):Play()
+        TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 1}):Play()
+        wait(0.2)
+        Overlay:Destroy()
+    end)
+    
+    CancelButton.MouseEnter:Connect(function()
+        TweenService:Create(CancelButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Surface}):Play()
+    end)
+    
+    CancelButton.MouseLeave:Connect(function()
+        TweenService:Create(CancelButton, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
+    end)
+    
+    ConfirmButton.MouseEnter:Connect(function()
+        TweenService:Create(ConfirmButton, FAST_TWEEN, {BackgroundColor3 = Color3.fromRGB(220, 60, 60)}):Play()
+    end)
+    
+    ConfirmButton.MouseLeave:Connect(function()
+        TweenService:Create(ConfirmButton, FAST_TWEEN, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}):Play()
+    end)
+end
+
+function ModernUI:ShowSettingsWindow()
+    if self.SettingsWindow and self.SettingsWindow.Parent then
+        self.SettingsWindow:Destroy()
+    end
+    
+    local Overlay = Instance.new("Frame")
+    Overlay.Name = "SettingsOverlay"
+    Overlay.Size = UDim2.new(1, 0, 1, 0)
+    Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Overlay.BackgroundTransparency = 1
+    Overlay.BorderSizePixel = 0
+    Overlay.ZIndex = 10
+    Overlay.Parent = self.MainFrame
+    
+    TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 0.6}):Play()
+    
+    local Settings = Instance.new("Frame")
+    Settings.Name = "Settings"
+    Settings.Size = UDim2.new(0, 400, 0, 0)
+    Settings.Position = UDim2.new(0.5, -200, 0.5, -200)
+    Settings.BackgroundColor3 = COLORS.Surface
+    Settings.BorderSizePixel = 0
+    Settings.ZIndex = 11
+    Settings.Parent = Overlay
+    
+    local SettingsCorner = Instance.new("UICorner")
+    SettingsCorner.CornerRadius = UDim.new(0, 14)
+    SettingsCorner.Parent = Settings
+    
+    self.SettingsWindow = Overlay
+    
+    TweenService:Create(Settings, TWEEN_INFO, {Size = UDim2.new(0, 400, 0, 350)}):Play()
+    
+    local Header = Instance.new("Frame")
+    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.BackgroundTransparency = 1
+    Header.ZIndex = 11
+    Header.Parent = Settings
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -50, 1, 0)
+    Title.Position = UDim2.new(0, 20, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = "Settings"
+    Title.TextColor3 = COLORS.White
+    Title.TextSize = 16
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 11
+    Title.Parent = Header
+    
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseBtn.BackgroundColor3 = COLORS.Background
+    CloseBtn.Text = ""
+    CloseBtn.AutoButtonColor = false
+    CloseBtn.ZIndex = 11
+    CloseBtn.Parent = Header
+    
+    local CloseBtnCorner = Instance.new("UICorner")
+    CloseBtnCorner.CornerRadius = UDim.new(0, 8)
+    CloseBtnCorner.Parent = CloseBtn
+    
+    local CloseIcon = Instance.new("ImageLabel")
+    CloseIcon.Size = UDim2.new(0, 14, 0, 14)
+    CloseIcon.Position = UDim2.new(0.5, -7, 0.5, -7)
+    CloseIcon.BackgroundTransparency = 1
+    CloseIcon.Image = "rbxassetid://7734053426"
+    CloseIcon.ImageColor3 = COLORS.Gray
+    CloseIcon.ZIndex = 11
+    CloseIcon.Parent = CloseBtn
+    
+    CloseBtn.MouseButton1Click:Connect(function()
+        TweenService:Create(Settings, FAST_TWEEN, {Size = UDim2.new(0, 400, 0, 0)}):Play()
+        TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 1}):Play()
+        wait(0.2)
+        Overlay:Destroy()
+    end)
+    
+    CloseBtn.MouseEnter:Connect(function()
+        TweenService:Create(CloseBtn, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
+        TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = COLORS.White}):Play()
+    end)
+    
+    CloseBtn.MouseLeave:Connect(function()
+        TweenService:Create(CloseBtn, FAST_TWEEN, {BackgroundColor3 = COLORS.Background}):Play()
+        TweenService:Create(CloseIcon, FAST_TWEEN, {ImageColor3 = COLORS.Gray}):Play()
+    end)
+    
+    local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(1, -40, 0, 1)
     Divider.Position = UDim2.new(0, 20, 0, 50)
     Divider.BackgroundColor3 = COLORS.Border
