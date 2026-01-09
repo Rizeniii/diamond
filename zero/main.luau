@@ -47,10 +47,16 @@ function ModernUI.new(config)
     self.ScreenGui.ResetOnSpawn = false
     self.ScreenGui.DisplayOrder = 999
     
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local isMobile = screenSize.X < 600
+    
+    local width = isMobile and screenSize.X * 0.9 or 580
+    local height = isMobile and screenSize.Y * 0.7 or 460
+    
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
-    self.MainFrame.Size = UDim2.new(0, 580, 0, 460)
-    self.MainFrame.Position = UDim2.new(0.5, -290, 0.5, -230)
+    self.MainFrame.Size = UDim2.new(0, width, 0, height)
+    self.MainFrame.Position = UDim2.new(0.5, -width/2, 0.5, -height/2)
     self.MainFrame.BackgroundColor3 = COLORS.Background
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.Parent = self.ScreenGui
@@ -77,13 +83,19 @@ function ModernUI.new(config)
     self:CreateHeader()
     self:CreateSidebar()
     self:CreateContentArea()
-    self:MakeDraggable()
+    self:MakeDraggable(self.MainFrame, self.MainFrame:FindFirstChild("Header"))
     self:MakeResizable()
     self:SetupMinimizeKey()
     
     self.Tabs = {}
     self.CurrentTab = nil
-    self.ConfigData = {}
+    self.ConfigData = {
+        Toggles = {},
+        Dropdowns = {},
+        MultiDropdowns = {},
+        Sliders = {},
+        FloatingButton = {}
+    }
     self.AccentElements = {}
     
     self.ScreenGui.Parent = game:GetService("CoreGui")
@@ -91,6 +103,10 @@ function ModernUI.new(config)
     self:LoadConfig()
     self:ApplyTheme(self.CurrentTheme)
     self:ApplyAcrylic(self.AcrylicEnabled)
+    
+    if config.FloatingButton ~= false then
+        self:CreateFloatingButton(config.FloatingButton or {})
+    end
     
     return self
 end
@@ -327,27 +343,25 @@ function ModernUI:CreateContentArea()
     self.ContentArea = ContentArea
 end
 
-function ModernUI:MakeDraggable()
+function ModernUI:MakeDraggable(frame, handle)
     local dragging = false
     local dragStart = nil
     local startPos = nil
-    
-    local Header = self.MainFrame:FindFirstChild("Header")
     
     local function onInputBegan(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = self.MainFrame.Position
+            startPos = frame.Position
         end
     end
     
-    Header.InputBegan:Connect(onInputBegan)
+    handle.InputBegan:Connect(onInputBegan)
     
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
-            self.MainFrame.Position = UDim2.new(
+            frame.Position = UDim2.new(
                 startPos.X.Scale,
                 startPos.X.Offset + delta.X,
                 startPos.Y.Scale,
@@ -410,9 +424,6 @@ function ModernUI:SetupMinimizeKey()
 end
 
 function ModernUI:ToggleUI()
-    local targetPos = self.MainFrame.Visible and UDim2.new(0.5, -290, 1.5, 0) or UDim2.new(0.5, -290, 0.5, -230)
-    TweenService:Create(self.MainFrame, TWEEN_INFO, {Position = targetPos}):Play()
-    wait(0.3)
     self.MainFrame.Visible = not self.MainFrame.Visible
 end
 
@@ -1245,9 +1256,8 @@ function ModernUI:AddToggle(tab, config)
         ToggleCircle.Position = UDim2.new(1, -20, 0.5, -9)
     end
     
-    local ConfigKey = "Toggle_" .. name
-    if self.ConfigData[ConfigKey] ~= nil then
-        toggled = self.ConfigData[ConfigKey]
+    if self.ConfigData.Toggles[name] ~= nil then
+        toggled = self.ConfigData.Toggles[name]
         if toggled then
             ToggleButton.BackgroundColor3 = COLORS.Accent
             ToggleCircle.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
@@ -1277,7 +1287,7 @@ function ModernUI:AddToggle(tab, config)
         toggled = not toggled
         updateToggle()
         
-        self.ConfigData[ConfigKey] = toggled
+        self.ConfigData.Toggles[name] = toggled
         self:SaveConfig()
         
         if callback then
@@ -1395,9 +1405,8 @@ function ModernUI:AddDropdown(tab, config)
     local isOpen = false
     local selectedOption = default or options[1]
     
-    local ConfigKey = "Dropdown_" .. name
-    if self.ConfigData[ConfigKey] ~= nil then
-        selectedOption = self.ConfigData[ConfigKey]
+    if self.ConfigData.Dropdowns[name] ~= nil then
+        selectedOption = self.ConfigData.Dropdowns[name]
         SelectedLabel.Text = selectedOption
     end
     
@@ -1459,7 +1468,7 @@ function ModernUI:AddDropdown(tab, config)
             Indicator.Size = UDim2.new(0, 0, 0, 16)
             TweenService:Create(Indicator, FAST_TWEEN, {Size = UDim2.new(0, 3, 0, 16)}):Play()
             
-            self.ConfigData[ConfigKey] = selectedOption
+            self.ConfigData.Dropdowns[name] = selectedOption
             self:SaveConfig()
             
             if callback then
@@ -1554,9 +1563,8 @@ function ModernUI:AddMultiDropdown(tab, config)
     
     local selectedOptions = defaults or {}
     
-    local ConfigKey = "MultiDropdown_" .. name
-    if self.ConfigData[ConfigKey] ~= nil then
-        selectedOptions = self.ConfigData[ConfigKey]
+    if self.ConfigData.MultiDropdowns[name] ~= nil then
+        selectedOptions = self.ConfigData.MultiDropdowns[name]
     end
     
     local SelectedLabel = Instance.new("TextLabel")
@@ -1689,7 +1697,7 @@ function ModernUI:AddMultiDropdown(tab, config)
             
             updateLabel()
             
-            self.ConfigData[ConfigKey] = selectedOptions
+            self.ConfigData.MultiDropdowns[name] = selectedOptions
             self:SaveConfig()
             
             if callback then
@@ -1930,9 +1938,8 @@ function ModernUI:AddSlider(tab, config)
     local dragging = false
     local activeInput = nil
     
-    local ConfigKey = "Slider_" .. name
-    if self.ConfigData[ConfigKey] ~= nil then
-        currentValue = self.ConfigData[ConfigKey]
+    if self.ConfigData.Sliders[name] ~= nil then
+        currentValue = self.ConfigData.Sliders[name]
     end
     
     local function updateSlider(value)
@@ -1951,7 +1958,7 @@ function ModernUI:AddSlider(tab, config)
         SliderFill.Size = UDim2.new(0, xPos, 1, 0)
         SliderHandle.Position = UDim2.new(0, xPos - 8, 0.5, -8)
         
-        self.ConfigData[ConfigKey] = currentValue
+        self.ConfigData.Sliders[name] = currentValue
         self:SaveConfig()
         
         if callback then
@@ -2156,67 +2163,80 @@ end
 function ModernUI:CreateFloatingButton(config)
     config = config or {}
     
-    local Icon = config.Icon or "rbxassetid://7733955511"
-    local Position = config.Position or UDim2.new(0, 15, 0.5, -25)
-    
-    local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    
-    local FloatingGui = Instance.new("ScreenGui")
-    FloatingGui.Name = "ModernUIFloatingButton"
-    FloatingGui.ResetOnSpawn = false
-    FloatingGui.Parent = playerGui
+    local size = config.Size or 52
+    local icon = config.Icon or self.Icon
+    local position = config.Position or UDim2.new(1, -70, 0.5, -26)
     
     local Button = Instance.new("ImageButton")
-    Button.Parent = FloatingGui
-    Button.Size = UDim2.new(0, 50, 0, 50)
-    Button.Position = Position
+    Button.Name = "FloatingButton"
+    Button.Size = UDim2.new(0, size, 0, size)
+    Button.Position = position
     Button.BackgroundColor3 = COLORS.Surface
-    Button.BorderSizePixel = 0
-    Button.Image = Icon
+    Button.Image = icon
+    Button.ImageColor3 = COLORS.White
+    Button.AutoButtonColor = false
+    Button.ZIndex = 9999
+    Button.Parent = self.ScreenGui
     
     local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 12)
+    Corner.CornerRadius = UDim.new(1, 0)
     Corner.Parent = Button
     
-    local dragging, dragStart, startPos
+    local Shadow = Instance.new("ImageLabel")
+    Shadow.Size = UDim2.new(1, 20, 1, 20)
+    Shadow.Position = UDim2.new(0, -10, 0, -10)
+    Shadow.BackgroundTransparency = 1
+    Shadow.Image = "rbxassetid://5554236805"
+    Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    Shadow.ImageTransparency = 0.7
+    Shadow.ScaleType = Enum.ScaleType.Slice
+    Shadow.SliceCenter = Rect.new(23, 23, 277, 277)
+    Shadow.ZIndex = 9998
+    Shadow.Parent = Button
     
-    Button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = Button.Position
-        end
-    end)
+    self.FloatingButton = Button
     
-    Button.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
+    if self.ConfigData.FloatingButton.Position then
+        Button.Position = self.ConfigData.FloatingButton.Position
+    end
     
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            Button.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
+    self:MakeDraggable(Button, Button)
     
-    local visible = true
     Button.MouseButton1Click:Connect(function()
-        visible = not visible
-        self.MainFrame.Visible = visible
+        self.MainFrame.Visible = not self.MainFrame.Visible
     end)
+    
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, FAST_TWEEN, {
+            BackgroundColor3 = COLORS.Accent,
+            Size = UDim2.new(0, size + 4, 0, size + 4)
+        }):Play()
+        TweenService:Create(Button, FAST_TWEEN, {ImageColor3 = Color3.fromRGB(8, 8, 12)}):Play()
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, FAST_TWEEN, {
+            BackgroundColor3 = COLORS.Surface,
+            Size = UDim2.new(0, size, 0, size)
+        }):Play()
+        TweenService:Create(Button, FAST_TWEEN, {ImageColor3 = COLORS.White}):Play()
+    end)
+    
+    Button:GetPropertyChangedSignal("Position"):Connect(function()
+        self.ConfigData.FloatingButton.Position = Button.Position
+        self:SaveConfig()
+    end)
+    
+    return Button
 end
 
 function ModernUI:SetIcon(iconId)
     self.Icon = iconId
     if self.IconFrame then
         self.IconFrame.Image = iconId
+    end
+    if self.FloatingButton then
+        self.FloatingButton.Image = iconId
     end
 end
 
@@ -2240,6 +2260,12 @@ function ModernUI:LoadConfig()
         if isfile(self.SaveFolder .. ".json") then
             local json = readfile(self.SaveFolder .. ".json")
             self.ConfigData = game:GetService("HttpService"):JSONDecode(json)
+            
+            if not self.ConfigData.Toggles then self.ConfigData.Toggles = {} end
+            if not self.ConfigData.Dropdowns then self.ConfigData.Dropdowns = {} end
+            if not self.ConfigData.MultiDropdowns then self.ConfigData.MultiDropdowns = {} end
+            if not self.ConfigData.Sliders then self.ConfigData.Sliders = {} end
+            if not self.ConfigData.FloatingButton then self.ConfigData.FloatingButton = {} end
             
             if self.ConfigData.Theme then
                 self.CurrentTheme = self.ConfigData.Theme
