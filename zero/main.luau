@@ -563,6 +563,23 @@ function ModernUI:ShowSettingsWindow()
     Overlay.ZIndex = 10
     Overlay.Parent = self.MainFrame
     
+    TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 0.6}):Play()
+    
+    local Settings = Instance.new("Frame")
+    Settings.Name = "Settings"
+    Settings.Size = UDim2.new(0, 400, 0, 0)
+    Settings.Position = UDim2.new(0.5, -200, 0.5, -200)
+    Settings.BackgroundColor3 = COLORS.Surface
+    Settings.BorderSizePixel = 0
+    Settings.ZIndex = 11
+    Settings.Parent = Overlay
+    
+    local SettingsCorner = Instance.new("UICorner")
+    SettingsCorner.CornerRadius = UDim.new(0, 14)
+    SettingsCorner.Parent = Settings
+    
+    self.SettingsWindow = Overlay
+    
     TweenService:Create(Settings, TWEEN_INFO, {Size = UDim2.new(0, 400, 0, 400)}):Play()
     
     local Header = Instance.new("Frame")
@@ -2133,6 +2150,66 @@ function ModernUI:Notify(config)
         tweenOut.Completed:Connect(function()
             Notification:Destroy()
         end)
+    end)
+end
+
+function ModernUI:CreateFloatingButton(config)
+    config = config or {}
+    
+    local Icon = config.Icon or "rbxassetid://7733955511"
+    local Position = config.Position or UDim2.new(0, 15, 0.5, -25)
+    
+    local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local FloatingGui = Instance.new("ScreenGui")
+    FloatingGui.Name = "ModernUIFloatingButton"
+    FloatingGui.ResetOnSpawn = false
+    FloatingGui.Parent = playerGui
+    
+    local Button = Instance.new("ImageButton")
+    Button.Parent = FloatingGui
+    Button.Size = UDim2.new(0, 50, 0, 50)
+    Button.Position = Position
+    Button.BackgroundColor3 = COLORS.Surface
+    Button.BorderSizePixel = 0
+    Button.Image = Icon
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 12)
+    Corner.Parent = Button
+    
+    local dragging, dragStart, startPos
+    
+    Button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Button.Position
+        end
+    end)
+    
+    Button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            Button.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    local visible = true
+    Button.MouseButton1Click:Connect(function()
+        visible = not visible
+        self.MainFrame.Visible = visible
     end)
 end
 
