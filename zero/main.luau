@@ -2186,7 +2186,7 @@ function ModernUI:CreateFloatingButton(config)
     Shadow.Size = UDim2.new(1, 20, 1, 20)
     Shadow.Position = UDim2.new(0, -10, 0, -10)
     Shadow.BackgroundTransparency = 1
-    Shadow.Image = "rbxassetid://5554236805"
+    Shadow.Image = "rbxassetid://104991709120908"
     Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
     Shadow.ImageTransparency = 0.7
     Shadow.ScaleType = Enum.ScaleType.Slice
