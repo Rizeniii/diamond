@@ -156,14 +156,11 @@ function ModernUI:CreateHeader()
     IconFrame.Size = UDim2.new(0, 22, 0, 22)
     IconFrame.Position = UDim2.new(0.5, -11, 0.5, -11)
     IconFrame.BackgroundTransparency = 1
-    IconFrame.Image = self.Icon
     IconFrame.ImageColor3 = COLORS.White
     IconFrame.Parent = IconContainer
-    
+
     self.IconFrame = IconFrame
     AnimateIcon(IconFrame, self.Icon, self.IconFPS)
-    
-    self.IconFrame = IconFrame
     
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
