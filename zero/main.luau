@@ -43,7 +43,7 @@ local function AnimateIcon(imageLabel, frames, fps)
             if currentFrame > #frames then
                 currentFrame = 1
             end
-            task.wait(fps or 0.5)
+            task.wait(fps or 0.1)
         end
     end)
 end
@@ -55,7 +55,7 @@ function ModernUI.new(config)
     self.Title = config.Title or "Modern UI"
     self.SubTitle = config.SubTitle or "Library"
     self.Icon = config.Icon or {"rbxassetid://138770682187300", "rbxassetid://110961158970233"}
-    self.IconFPS = config.IconFPS or 0.5
+    self.IconFPS = config.IconFPS or 0.1
     self.MinimizeKey = Enum.KeyCode.LeftControl
     self.SaveFolder = "ModernUIConfig"
     self.AcrylicEnabled = false
@@ -1039,7 +1039,7 @@ function ModernUI:CreateTab(config)
     IconLabel.ImageColor3 = COLORS.Gray
     IconLabel.Parent = TabButton
     
-    AnimateIcon(IconLabel, icon, 0.5)
+    AnimateIcon(IconLabel, icon, 0.1)
     
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(1, -38, 1, 0)
@@ -2145,7 +2145,7 @@ function ModernUI:Notify(config)
     IconLabel.ImageColor3 = COLORS.Accent
     IconLabel.Parent = IconContainer
     
-    AnimateIcon(IconLabel, icon, 0.5)
+    AnimateIcon(IconLabel, icon, 0.1)
     
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, -76, 0, 20)
@@ -2202,7 +2202,7 @@ function ModernUI:CreateFloatingButton(config)
     Button.ZIndex = 9999
     Button.Parent = self.ScreenGui
     
-    AnimateIcon(Button, icon, 0.5)
+    AnimateIcon(Button, icon, 0.1)
     
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(1, 0)
