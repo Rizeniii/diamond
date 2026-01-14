@@ -1,9 +1,14 @@
 # Cat Hub UI
 
-- Example Usage
+A modern Roblox UI library focused on clean visuals, smooth animations, and easy customization.  
+Works on PC and mobile with built-in settings, themes, and persistent config.
 
-  ```lua
-  local ModernUI = loadstring(game:HttpGet("URL_DO_SEU_SCRIPT"))()
+---
+
+## Basic Example Usage
+
+```lua
+local ModernUI = loadstring(game:HttpGet("URL_DO_SEU_SCRIPT"))()
 
 local UI = ModernUI.new({
     Title = "Example UI",
@@ -40,19 +45,19 @@ UI:AddToggle(MainTab, {
 -- DROPDOWN
 UI:AddDropdown(MainTab, {
     Name = "Select Mode",
-    Options = {"Easy", "Normal", "Hard"},
+    Options = { "Easy", "Normal", "Hard" },
     Default = "Normal",
     Callback = function(value)
-        print("Mode:", value)
+        print("Selected Mode:", value)
     end
 })
 
--- SEGUNDA SECTION
+-- SECOND SECTION
 UI:AddSection(MainTab, {
     Name = "Visual Settings"
 })
 
--- OUTRO TOGGLE
+-- SECOND TOGGLE
 UI:AddToggle(MainTab, {
     Name = "ESP",
     Default = true,
@@ -61,12 +66,12 @@ UI:AddToggle(MainTab, {
     end
 })
 
--- OUTRO DROPDOWN
+-- SECOND DROPDOWN
 UI:AddDropdown(MainTab, {
     Name = "ESP Color",
-    Options = {"Red", "Green", "Blue"},
+    Options = { "Red", "Green", "Blue" },
     Default = "Red",
     Callback = function(value)
         print("ESP Color:", value)
     end
-})```
+})
