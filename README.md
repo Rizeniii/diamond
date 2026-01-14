@@ -8,7 +8,7 @@ Works on PC and mobile with built-in settings, themes, and persistent config.
 ## Basic Example Usage
 
 ```lua
-local ModernUI = loadstring(game:HttpGet("URL_DO_SEU_SCRIPT"))()
+local ModernUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Rizeniii/diamond/refs/heads/main/zero/main.luau"))()
 
 local UI = ModernUI.new({
     Title = "Example UI",
