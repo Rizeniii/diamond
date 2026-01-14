@@ -1035,7 +1035,7 @@ function ModernUI:CreateTab(config)
     IconLabel.Size = UDim2.new(0, 16, 0, 16)
     IconLabel.Position = UDim2.new(0, 12, 0.5, -8)
     IconLabel.BackgroundTransparency = 1
-    IconLabel.Image = icon
+    IconLabel.ImageColor3 = COLORS.Gray
     IconLabel.ImageColor3 = COLORS.Gray
     IconLabel.Parent = TabButton
     
@@ -2141,7 +2141,7 @@ function ModernUI:Notify(config)
     IconLabel.Size = UDim2.new(0, 24, 0, 24)
     IconLabel.Position = UDim2.new(0.5, -12, 0.5, -12)
     IconLabel.BackgroundTransparency = 1
-    IconLabel.Image = icon
+    IconLabel.ImageColor3 = COLORS.Gray
     IconLabel.ImageColor3 = COLORS.Accent
     IconLabel.Parent = IconContainer
     
@@ -2196,7 +2196,7 @@ function ModernUI:CreateFloatingButton(config)
     Button.Size = UDim2.new(0, size, 0, size)
     Button.Position = position
     Button.BackgroundColor3 = COLORS.Surface
-    Button.Image = icon
+    Button.ImageColor3 = COLORS.White
     Button.ImageColor3 = COLORS.White
     Button.AutoButtonColor = false
     Button.ZIndex = 9999
