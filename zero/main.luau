@@ -29,13 +29,33 @@ local TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirecti
 local FAST_TWEEN = TweenInfo.new(0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local SLOW_TWEEN = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
+local function AnimateIcon(imageLabel, frames, fps)
+    if type(frames) ~= "table" then
+        imageLabel.Image = frames
+        return
+    end
+    
+    task.spawn(function()
+        local currentFrame = 1
+        while imageLabel and imageLabel.Parent do
+            imageLabel.Image = frames[currentFrame]
+            currentFrame = currentFrame + 1
+            if currentFrame > #frames then
+                currentFrame = 1
+            end
+            task.wait(fps or 0.5)
+        end
+    end)
+end
+
 function ModernUI.new(config)
     local self = setmetatable({}, ModernUI)
     
     config = config or {}
     self.Title = config.Title or "Modern UI"
     self.SubTitle = config.SubTitle or "Library"
-    self.Icon = config.Icon or "rbxassetid://7733955511"
+    self.Icon = config.Icon or {"rbxassetid://138770682187300", "rbxassetid://110961158970233"}
+    self.IconFPS = config.IconFPS or 0.5
     self.MinimizeKey = Enum.KeyCode.LeftControl
     self.SaveFolder = "ModernUIConfig"
     self.AcrylicEnabled = false
@@ -139,6 +159,9 @@ function ModernUI:CreateHeader()
     IconFrame.Image = self.Icon
     IconFrame.ImageColor3 = COLORS.White
     IconFrame.Parent = IconContainer
+    
+    self.IconFrame = IconFrame
+    AnimateIcon(IconFrame, self.Icon, self.IconFPS)
     
     self.IconFrame = IconFrame
     
@@ -981,7 +1004,7 @@ function ModernUI:CreateTab(config)
     
     config = config or {}
     local name = config.Name or "Tab"
-    local icon = config.Icon or "rbxassetid://7733955511"
+    local icon = config.Icon or {"rbxassetid://138770682187300", "rbxassetid://110961158970233"}
     
     local TabButton = Instance.new("TextButton")
     TabButton.Name = name
@@ -1018,6 +1041,8 @@ function ModernUI:CreateTab(config)
     IconLabel.Image = icon
     IconLabel.ImageColor3 = COLORS.Gray
     IconLabel.Parent = TabButton
+    
+    AnimateIcon(IconLabel, icon, 0.5)
     
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(1, -38, 1, 0)
@@ -2066,7 +2091,7 @@ function ModernUI:Notify(config)
     config = config or {}
     local title = config.Title or "Notification"
     local body = config.Body or "Message"
-    local icon = config.Icon or "rbxassetid://7733955511"
+    local icon = config.Icon or {"rbxassetid://138770682187300", "rbxassetid://110961158970233"}
     local duration = config.Duration or 5
     
     local Notification = Instance.new("Frame")
@@ -2123,6 +2148,8 @@ function ModernUI:Notify(config)
     IconLabel.ImageColor3 = COLORS.Accent
     IconLabel.Parent = IconContainer
     
+    AnimateIcon(IconLabel, icon, 0.5)
+    
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, -76, 0, 20)
     TitleLabel.Position = UDim2.new(0, 68, 0, 22)
@@ -2177,6 +2204,8 @@ function ModernUI:CreateFloatingButton(config)
     Button.AutoButtonColor = false
     Button.ZIndex = 9999
     Button.Parent = self.ScreenGui
+    
+    AnimateIcon(Button, icon, 0.5)
     
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(1, 0)
@@ -2233,10 +2262,10 @@ end
 function ModernUI:SetIcon(iconId)
     self.Icon = iconId
     if self.IconFrame then
-        self.IconFrame.Image = iconId
+        AnimateIcon(self.IconFrame, iconId, self.IconFPS)
     end
     if self.FloatingButton then
-        self.FloatingButton.Image = iconId
+        AnimateIcon(self.FloatingButton, iconId, self.IconFPS)
     end
 end
 
