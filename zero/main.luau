@@ -359,8 +359,8 @@ function ModernUI:ShowSettingsWindow()
     
     local Settings = Instance.new("Frame")
     Settings.Name = "Settings"
-    Settings.Size = UDim2.new(0, 340, 0, 0)
-    Settings.Position = UDim2.new(0.5, -170, 0.5, -220)
+    Settings.Size = UDim2.new(0, 280, 0, 0)
+    Settings.Position = UDim2.new(0.5, -140, 0.5, -200)
     Settings.BackgroundColor3 = COLORS.Surface
     Settings.BorderSizePixel = 0
     Settings.ZIndex = 11
@@ -372,29 +372,29 @@ function ModernUI:ShowSettingsWindow()
     
     self.SettingsWindow = Overlay
     
-    TweenService:Create(Settings, TWEEN_INFO, {Size = UDim2.new(0, 340, 0, 440)}):Play()
+    TweenService:Create(Settings, TWEEN_INFO, {Size = UDim2.new(0, 280, 0, 400)}):Play()
     
     local Header = Instance.new("Frame")
-    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.Size = UDim2.new(1, 0, 0, 45)
     Header.BackgroundTransparency = 1
     Header.ZIndex = 11
     Header.Parent = Settings
     
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, -50, 1, 0)
-    Title.Position = UDim2.new(0, 20, 0, 0)
+    Title.Position = UDim2.new(0, 16, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Text = "Settings"
     Title.TextColor3 = COLORS.White
-    Title.TextSize = 16
+    Title.TextSize = 15
     Title.Font = Enum.Font.GothamBold
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.ZIndex = 11
     Title.Parent = Header
     
     local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-    CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+    CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+    CloseBtn.Position = UDim2.new(1, -36, 0.5, -14)
     CloseBtn.BackgroundColor3 = COLORS.Background
     CloseBtn.Text = ""
     CloseBtn.AutoButtonColor = false
@@ -406,8 +406,8 @@ function ModernUI:ShowSettingsWindow()
     CloseBtnCorner.Parent = CloseBtn
     
     local CloseIcon = Instance.new("ImageLabel")
-    CloseIcon.Size = UDim2.new(0, 14, 0, 14)
-    CloseIcon.Position = UDim2.new(0.5, -7, 0.5, -7)
+    CloseIcon.Size = UDim2.new(0, 12, 0, 12)
+    CloseIcon.Position = UDim2.new(0.5, -6, 0.5, -6)
     CloseIcon.BackgroundTransparency = 1
     CloseIcon.Image = "rbxassetid://7734053426"
     CloseIcon.ImageColor3 = COLORS.Gray
@@ -415,7 +415,7 @@ function ModernUI:ShowSettingsWindow()
     CloseIcon.Parent = CloseBtn
     
     CloseBtn.MouseButton1Click:Connect(function()
-        TweenService:Create(Settings, FAST_TWEEN, {Size = UDim2.new(0, 340, 0, 0)}):Play()
+        TweenService:Create(Settings, FAST_TWEEN, {Size = UDim2.new(0, 280, 0, 0)}):Play()
         TweenService:Create(Overlay, FAST_TWEEN, {BackgroundTransparency = 1}):Play()
         wait(0.15)
         Overlay:Destroy()
@@ -432,16 +432,16 @@ function ModernUI:ShowSettingsWindow()
     end)
     
     local Divider = Instance.new("Frame")
-    Divider.Size = UDim2.new(1, -40, 0, 1)
-    Divider.Position = UDim2.new(0, 20, 0, 50)
+    Divider.Size = UDim2.new(1, -32, 0, 1)
+    Divider.Position = UDim2.new(0, 16, 0, 45)
     Divider.BackgroundColor3 = COLORS.Border
     Divider.BorderSizePixel = 0
     Divider.ZIndex = 11
     Divider.Parent = Settings
     
     local Content = Instance.new("ScrollingFrame")
-    Content.Size = UDim2.new(1, -40, 1, -110)
-    Content.Position = UDim2.new(0, 20, 0, 60)
+    Content.Size = UDim2.new(1, -32, 1, -95)
+    Content.Position = UDim2.new(0, 16, 0, 52)
     Content.BackgroundTransparency = 1
     Content.BorderSizePixel = 0
     Content.ScrollBarThickness = 3
@@ -452,19 +452,19 @@ function ModernUI:ShowSettingsWindow()
     
     local ContentLayout = Instance.new("UIListLayout")
     ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ContentLayout.Padding = UDim.new(0, 15)
+    ContentLayout.Padding = UDim.new(0, 12)
     ContentLayout.Parent = Content
     
     ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        Content.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+        Content.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 16)
     end)
     
     local ThemeLabel = Instance.new("TextLabel")
-    ThemeLabel.Size = UDim2.new(1, 0, 0, 20)
+    ThemeLabel.Size = UDim2.new(1, 0, 0, 18)
     ThemeLabel.BackgroundTransparency = 1
     ThemeLabel.Text = "Theme"
     ThemeLabel.TextColor3 = COLORS.White
-    ThemeLabel.TextSize = 13
+    ThemeLabel.TextSize = 12
     ThemeLabel.Font = Enum.Font.GothamBold
     ThemeLabel.TextXAlignment = Enum.TextXAlignment.Left
     ThemeLabel.ZIndex = 11
@@ -472,15 +472,15 @@ function ModernUI:ShowSettingsWindow()
     ThemeLabel.Parent = Content
     
     local ThemeContainer = Instance.new("Frame")
-    ThemeContainer.Size = UDim2.new(1, 0, 0, 80)
+    ThemeContainer.Size = UDim2.new(1, 0, 0, 70)
     ThemeContainer.BackgroundTransparency = 1
     ThemeContainer.ZIndex = 11
     ThemeContainer.LayoutOrder = 2
     ThemeContainer.Parent = Content
     
     local ThemeGrid = Instance.new("UIGridLayout")
-    ThemeGrid.CellSize = UDim2.new(0, 50, 0, 50)
-    ThemeGrid.CellPadding = UDim2.new(0, 10, 0, 10)
+    ThemeGrid.CellSize = UDim2.new(0, 38, 0, 38)
+    ThemeGrid.CellPadding = UDim2.new(0, 8, 0, 8)
     ThemeGrid.SortOrder = Enum.SortOrder.LayoutOrder
     ThemeGrid.Parent = ThemeContainer
     
@@ -488,7 +488,7 @@ function ModernUI:ShowSettingsWindow()
     
     for i, themeName in ipairs(themeOrder) do
         local ThemeButton = Instance.new("TextButton")
-        ThemeButton.Size = UDim2.new(0, 50, 0, 50)
+        ThemeButton.Size = UDim2.new(0, 38, 0, 38)
         ThemeButton.BackgroundColor3 = THEMES[themeName]
         ThemeButton.Text = ""
         ThemeButton.AutoButtonColor = false
@@ -497,12 +497,12 @@ function ModernUI:ShowSettingsWindow()
         ThemeButton.Parent = ThemeContainer
         
         local ThemeCorner = Instance.new("UICorner")
-        ThemeCorner.CornerRadius = UDim.new(0, 10)
+        ThemeCorner.CornerRadius = UDim.new(0, 9)
         ThemeCorner.Parent = ThemeButton
         
         local Selected = Instance.new("ImageLabel")
-        Selected.Size = UDim2.new(0, 20, 0, 20)
-        Selected.Position = UDim2.new(0.5, -10, 0.5, -10)
+        Selected.Size = UDim2.new(0, 16, 0, 16)
+        Selected.Position = UDim2.new(0.5, -8, 0.5, -8)
         Selected.BackgroundTransparency = 1
         Selected.Image = "rbxassetid://7733964126"
         Selected.ImageColor3 = Color3.fromRGB(8, 8, 12)
@@ -524,20 +524,20 @@ function ModernUI:ShowSettingsWindow()
         end)
         
         ThemeButton.MouseEnter:Connect(function()
-            TweenService:Create(ThemeButton, FAST_TWEEN, {Size = UDim2.new(0, 55, 0, 55)}):Play()
+            TweenService:Create(ThemeButton, FAST_TWEEN, {Size = UDim2.new(0, 42, 0, 42)}):Play()
         end)
         
         ThemeButton.MouseLeave:Connect(function()
-            TweenService:Create(ThemeButton, FAST_TWEEN, {Size = UDim2.new(0, 50, 0, 50)}):Play()
+            TweenService:Create(ThemeButton, FAST_TWEEN, {Size = UDim2.new(0, 38, 0, 38)}):Play()
         end)
     end
     
     local CustomThemeLabel = Instance.new("TextLabel")
-    CustomThemeLabel.Size = UDim2.new(1, 0, 0, 20)
+    CustomThemeLabel.Size = UDim2.new(1, 0, 0, 18)
     CustomThemeLabel.BackgroundTransparency = 1
     CustomThemeLabel.Text = "Custom Theme"
     CustomThemeLabel.TextColor3 = COLORS.White
-    CustomThemeLabel.TextSize = 13
+    CustomThemeLabel.TextSize = 12
     CustomThemeLabel.Font = Enum.Font.GothamBold
     CustomThemeLabel.TextXAlignment = Enum.TextXAlignment.Left
     CustomThemeLabel.ZIndex = 11
@@ -545,7 +545,7 @@ function ModernUI:ShowSettingsWindow()
     CustomThemeLabel.Parent = Content
     
     local ColorPickerContainer = Instance.new("Frame")
-    ColorPickerContainer.Size = UDim2.new(1, 0, 0, 200)
+    ColorPickerContainer.Size = UDim2.new(1, 0, 0, 160)
     ColorPickerContainer.BackgroundTransparency = 1
     ColorPickerContainer.ZIndex = 11
     ColorPickerContainer.LayoutOrder = 4
@@ -556,11 +556,11 @@ function ModernUI:ShowSettingsWindow()
     end)
     
     local AcrylicLabel = Instance.new("TextLabel")
-    AcrylicLabel.Size = UDim2.new(1, 0, 0, 20)
+    AcrylicLabel.Size = UDim2.new(1, 0, 0, 18)
     AcrylicLabel.BackgroundTransparency = 1
     AcrylicLabel.Text = "Acrylic Effect"
     AcrylicLabel.TextColor3 = COLORS.White
-    AcrylicLabel.TextSize = 13
+    AcrylicLabel.TextSize = 12
     AcrylicLabel.Font = Enum.Font.GothamBold
     AcrylicLabel.TextXAlignment = Enum.TextXAlignment.Left
     AcrylicLabel.ZIndex = 11
@@ -568,7 +568,7 @@ function ModernUI:ShowSettingsWindow()
     AcrylicLabel.Parent = Content
     
     local AcrylicToggle = Instance.new("Frame")
-    AcrylicToggle.Size = UDim2.new(1, 0, 0, 40)
+    AcrylicToggle.Size = UDim2.new(1, 0, 0, 36)
     AcrylicToggle.BackgroundColor3 = COLORS.Background
     AcrylicToggle.BorderSizePixel = 0
     AcrylicToggle.ZIndex = 11
@@ -576,24 +576,24 @@ function ModernUI:ShowSettingsWindow()
     AcrylicToggle.Parent = Content
     
     local AcrylicCorner = Instance.new("UICorner")
-    AcrylicCorner.CornerRadius = UDim.new(0, 10)
+    AcrylicCorner.CornerRadius = UDim.new(0, 9)
     AcrylicCorner.Parent = AcrylicToggle
     
     local AcrylicText = Instance.new("TextLabel")
-    AcrylicText.Size = UDim2.new(0.7, 0, 1, 0)
-    AcrylicText.Position = UDim2.new(0, 14, 0, 0)
+    AcrylicText.Size = UDim2.new(0.65, 0, 1, 0)
+    AcrylicText.Position = UDim2.new(0, 12, 0, 0)
     AcrylicText.BackgroundTransparency = 1
     AcrylicText.Text = "Enable Transparency"
     AcrylicText.TextColor3 = COLORS.White
-    AcrylicText.TextSize = 12
+    AcrylicText.TextSize = 11
     AcrylicText.Font = Enum.Font.GothamMedium
     AcrylicText.TextXAlignment = Enum.TextXAlignment.Left
     AcrylicText.ZIndex = 11
     AcrylicText.Parent = AcrylicToggle
     
     local AcrylicButton = Instance.new("TextButton")
-    AcrylicButton.Size = UDim2.new(0, 42, 0, 22)
-    AcrylicButton.Position = UDim2.new(1, -56, 0.5, -11)
+    AcrylicButton.Size = UDim2.new(0, 38, 0, 20)
+    AcrylicButton.Position = UDim2.new(1, -46, 0.5, -10)
     AcrylicButton.BackgroundColor3 = self.AcrylicEnabled and COLORS.Accent or COLORS.SurfaceLight
     AcrylicButton.BorderSizePixel = 0
     AcrylicButton.Text = ""
@@ -606,8 +606,8 @@ function ModernUI:ShowSettingsWindow()
     AcrylicBtnCorner.Parent = AcrylicButton
     
     local AcrylicCircle = Instance.new("Frame")
-    AcrylicCircle.Size = UDim2.new(0, 18, 0, 18)
-    AcrylicCircle.Position = self.AcrylicEnabled and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+    AcrylicCircle.Size = UDim2.new(0, 16, 0, 16)
+    AcrylicCircle.Position = self.AcrylicEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
     AcrylicCircle.BackgroundColor3 = self.AcrylicEnabled and Color3.fromRGB(8, 8, 12) or COLORS.Gray
     AcrylicCircle.BorderSizePixel = 0
     AcrylicCircle.ZIndex = 11
@@ -625,23 +625,23 @@ function ModernUI:ShowSettingsWindow()
             TweenService:Create(AcrylicButton, FAST_TWEEN, {BackgroundColor3 = COLORS.Accent}):Play()
             TweenService:Create(AcrylicCircle, FAST_TWEEN, {
                 BackgroundColor3 = Color3.fromRGB(8, 8, 12),
-                Position = UDim2.new(1, -20, 0.5, -9)
+                Position = UDim2.new(1, -18, 0.5, -8)
             }):Play()
         else
             TweenService:Create(AcrylicButton, FAST_TWEEN, {BackgroundColor3 = COLORS.SurfaceLight}):Play()
             TweenService:Create(AcrylicCircle, FAST_TWEEN, {
                 BackgroundColor3 = COLORS.Gray,
-                Position = UDim2.new(0, 2, 0.5, -9)
+                Position = UDim2.new(0, 2, 0.5, -8)
             }):Play()
         end
     end)
     
     local KeybindLabel = Instance.new("TextLabel")
-    KeybindLabel.Size = UDim2.new(1, 0, 0, 20)
+    KeybindLabel.Size = UDim2.new(1, 0, 0, 18)
     KeybindLabel.BackgroundTransparency = 1
     KeybindLabel.Text = "Toggle Keybind"
     KeybindLabel.TextColor3 = COLORS.White
-    KeybindLabel.TextSize = 13
+    KeybindLabel.TextSize = 12
     KeybindLabel.Font = Enum.Font.GothamBold
     KeybindLabel.TextXAlignment = Enum.TextXAlignment.Left
     KeybindLabel.ZIndex = 11
@@ -649,7 +649,7 @@ function ModernUI:ShowSettingsWindow()
     KeybindLabel.Parent = Content
     
     local KeybindContainer = Instance.new("Frame")
-    KeybindContainer.Size = UDim2.new(1, 0, 0, 40)
+    KeybindContainer.Size = UDim2.new(1, 0, 0, 36)
     KeybindContainer.BackgroundColor3 = COLORS.Background
     KeybindContainer.BorderSizePixel = 0
     KeybindContainer.ZIndex = 11
@@ -657,35 +657,35 @@ function ModernUI:ShowSettingsWindow()
     KeybindContainer.Parent = Content
     
     local KeybindCorner = Instance.new("UICorner")
-    KeybindCorner.CornerRadius = UDim.new(0, 10)
+    KeybindCorner.CornerRadius = UDim.new(0, 9)
     KeybindCorner.Parent = KeybindContainer
     
     local KeybindText = Instance.new("TextLabel")
-    KeybindText.Size = UDim2.new(0.5, 0, 1, 0)
-    KeybindText.Position = UDim2.new(0, 14, 0, 0)
+    KeybindText.Size = UDim2.new(0.4, 0, 1, 0)
+    KeybindText.Position = UDim2.new(0, 12, 0, 0)
     KeybindText.BackgroundTransparency = 1
     KeybindText.Text = "Current Key"
     KeybindText.TextColor3 = COLORS.White
-    KeybindText.TextSize = 12
+    KeybindText.TextSize = 11
     KeybindText.Font = Enum.Font.GothamMedium
     KeybindText.TextXAlignment = Enum.TextXAlignment.Left
     KeybindText.ZIndex = 11
     KeybindText.Parent = KeybindContainer
     
     local KeybindButton = Instance.new("TextButton")
-    KeybindButton.Size = UDim2.new(0, 120, 0, 30)
-    KeybindButton.Position = UDim2.new(1, -134, 0.5, -15)
+    KeybindButton.Size = UDim2.new(0, 90, 0, 26)
+    KeybindButton.Position = UDim2.new(1, -98, 0.5, -13)
     KeybindButton.BackgroundColor3 = COLORS.SurfaceLight
     KeybindButton.Text = self.MinimizeKey.Name
     KeybindButton.TextColor3 = COLORS.White
-    KeybindButton.TextSize = 11
+    KeybindButton.TextSize = 10
     KeybindButton.Font = Enum.Font.GothamBold
     KeybindButton.AutoButtonColor = false
     KeybindButton.ZIndex = 11
     KeybindButton.Parent = KeybindContainer
     
     local KeybindBtnCorner = Instance.new("UICorner")
-    KeybindBtnCorner.CornerRadius = UDim.new(0, 8)
+    KeybindBtnCorner.CornerRadius = UDim.new(0, 7)
     KeybindBtnCorner.Parent = KeybindButton
     
     local isBinding = false
@@ -715,11 +715,11 @@ function ModernUI:ShowSettingsWindow()
     end)
     
     local BgImageLabel = Instance.new("TextLabel")
-    BgImageLabel.Size = UDim2.new(1, 0, 0, 20)
+    BgImageLabel.Size = UDim2.new(1, 0, 0, 18)
     BgImageLabel.BackgroundTransparency = 1
     BgImageLabel.Text = "Background Image"
     BgImageLabel.TextColor3 = COLORS.White
-    BgImageLabel.TextSize = 13
+    BgImageLabel.TextSize = 12
     BgImageLabel.Font = Enum.Font.GothamBold
     BgImageLabel.TextXAlignment = Enum.TextXAlignment.Left
     BgImageLabel.ZIndex = 11
@@ -727,7 +727,7 @@ function ModernUI:ShowSettingsWindow()
     BgImageLabel.Parent = Content
     
     local BgImageContainer = Instance.new("Frame")
-    BgImageContainer.Size = UDim2.new(1, 0, 0, 70)
+    BgImageContainer.Size = UDim2.new(1, 0, 0, 62)
     BgImageContainer.BackgroundColor3 = COLORS.Background
     BgImageContainer.BorderSizePixel = 0
     BgImageContainer.ZIndex = 11
@@ -735,50 +735,50 @@ function ModernUI:ShowSettingsWindow()
     BgImageContainer.Parent = Content
     
     local BgImageCorner = Instance.new("UICorner")
-    BgImageCorner.CornerRadius = UDim.new(0, 10)
+    BgImageCorner.CornerRadius = UDim.new(0, 9)
     BgImageCorner.Parent = BgImageContainer
     
     local BgImageText = Instance.new("TextLabel")
-    BgImageText.Size = UDim2.new(1, -28, 0, 18)
-    BgImageText.Position = UDim2.new(0, 14, 0, 8)
+    BgImageText.Size = UDim2.new(1, -24, 0, 16)
+    BgImageText.Position = UDim2.new(0, 12, 0, 6)
     BgImageText.BackgroundTransparency = 1
     BgImageText.Text = "Image ID"
     BgImageText.TextColor3 = COLORS.Gray
-    BgImageText.TextSize = 11
+    BgImageText.TextSize = 10
     BgImageText.Font = Enum.Font.GothamMedium
     BgImageText.TextXAlignment = Enum.TextXAlignment.Left
     BgImageText.ZIndex = 11
     BgImageText.Parent = BgImageContainer
     
     local BgImageInput = Instance.new("TextBox")
-    BgImageInput.Size = UDim2.new(1, -28, 0, 32)
-    BgImageInput.Position = UDim2.new(0, 14, 0, 30)
+    BgImageInput.Size = UDim2.new(1, -24, 0, 30)
+    BgImageInput.Position = UDim2.new(0, 12, 0, 26)
     BgImageInput.BackgroundColor3 = COLORS.SurfaceLight
     BgImageInput.BorderSizePixel = 0
     BgImageInput.Text = self.BackgroundImage
     BgImageInput.PlaceholderText = "rbxassetid://123456789"
     BgImageInput.TextColor3 = COLORS.White
-    BgImageInput.TextSize = 11
+    BgImageInput.TextSize = 10
     BgImageInput.Font = Enum.Font.Gotham
     BgImageInput.ClearTextOnFocus = false
     BgImageInput.ZIndex = 11
     BgImageInput.Parent = BgImageContainer
     
     local BgInputCorner = Instance.new("UICorner")
-    BgInputCorner.CornerRadius = UDim.new(0, 8)
+    BgInputCorner.CornerRadius = UDim.new(0, 7)
     BgInputCorner.Parent = BgImageInput
     
     local BgImagePadding = Instance.new("UIPadding")
-    BgImagePadding.PaddingLeft = UDim.new(0, 10)
-    BgImagePadding.PaddingRight = UDim.new(0, 10)
+    BgImagePadding.PaddingLeft = UDim.new(0, 8)
+    BgImagePadding.PaddingRight = UDim.new(0, 8)
     BgImagePadding.Parent = BgImageInput
     
     local BgTransLabel = Instance.new("TextLabel")
-    BgTransLabel.Size = UDim2.new(1, 0, 0, 20)
+    BgTransLabel.Size = UDim2.new(1, 0, 0, 18)
     BgTransLabel.BackgroundTransparency = 1
     BgTransLabel.Text = "Background Opacity"
     BgTransLabel.TextColor3 = COLORS.White
-    BgTransLabel.TextSize = 13
+    BgTransLabel.TextSize = 12
     BgTransLabel.Font = Enum.Font.GothamBold
     BgTransLabel.TextXAlignment = Enum.TextXAlignment.Left
     BgTransLabel.ZIndex = 11
@@ -786,7 +786,7 @@ function ModernUI:ShowSettingsWindow()
     BgTransLabel.Parent = Content
     
     local BgTransSlider = Instance.new("Frame")
-    BgTransSlider.Size = UDim2.new(1, 0, 0, 60)
+    BgTransSlider.Size = UDim2.new(1, 0, 0, 52)
     BgTransSlider.BackgroundColor3 = COLORS.Background
     BgTransSlider.BorderSizePixel = 0
     BgTransSlider.ZIndex = 11
@@ -794,24 +794,24 @@ function ModernUI:ShowSettingsWindow()
     BgTransSlider.Parent = Content
     
     local BgTransCorner = Instance.new("UICorner")
-    BgTransCorner.CornerRadius = UDim.new(0, 10)
+    BgTransCorner.CornerRadius = UDim.new(0, 9)
     BgTransCorner.Parent = BgTransSlider
     
     local BgTransValue = Instance.new("TextLabel")
-    BgTransValue.Size = UDim2.new(0, 60, 0, 20)
-    BgTransValue.Position = UDim2.new(1, -74, 0, 12)
+    BgTransValue.Size = UDim2.new(0, 50, 0, 18)
+    BgTransValue.Position = UDim2.new(1, -58, 0, 10)
     BgTransValue.BackgroundTransparency = 1
     BgTransValue.Text = string.format("%.0f%%", (1 - self.BackgroundTransparency) * 100)
     BgTransValue.TextColor3 = COLORS.Accent
-    BgTransValue.TextSize = 13
+    BgTransValue.TextSize = 12
     BgTransValue.Font = Enum.Font.GothamBold
     BgTransValue.TextXAlignment = Enum.TextXAlignment.Right
     BgTransValue.ZIndex = 11
     BgTransValue.Parent = BgTransSlider
     
     local BgTransTrack = Instance.new("Frame")
-    BgTransTrack.Size = UDim2.new(1, -28, 0, 6)
-    BgTransTrack.Position = UDim2.new(0, 14, 1, -20)
+    BgTransTrack.Size = UDim2.new(1, -24, 0, 5)
+    BgTransTrack.Position = UDim2.new(0, 12, 1, -16)
     BgTransTrack.BackgroundColor3 = COLORS.SurfaceLight
     BgTransTrack.BorderSizePixel = 0
     BgTransTrack.ZIndex = 11
@@ -833,8 +833,8 @@ function ModernUI:ShowSettingsWindow()
     BgTransFillCorner.Parent = BgTransFill
     
     local BgTransHandle = Instance.new("Frame")
-    BgTransHandle.Size = UDim2.new(0, 16, 0, 16)
-    BgTransHandle.Position = UDim2.new(1 - self.BackgroundTransparency, -8, 0.5, -8)
+    BgTransHandle.Size = UDim2.new(0, 14, 0, 14)
+    BgTransHandle.Position = UDim2.new(1 - self.BackgroundTransparency, -7, 0.5, -7)
     BgTransHandle.BackgroundColor3 = COLORS.White
     BgTransHandle.BorderSizePixel = 0
     BgTransHandle.ZIndex = 11
@@ -852,7 +852,7 @@ function ModernUI:ShowSettingsWindow()
         
         BgTransValue.Text = string.format("%.0f%%", (1 - value) * 100)
         BgTransFill.Size = UDim2.new(1 - value, 0, 1, 0)
-        BgTransHandle.Position = UDim2.new(1 - value, -8, 0.5, -8)
+        BgTransHandle.Position = UDim2.new(1 - value, -7, 0.5, -7)
         
         if self.CustomBg then
             self.CustomBg.ImageTransparency = value
@@ -883,11 +883,11 @@ function ModernUI:ShowSettingsWindow()
     end)
     
     local SaveButton = Instance.new("TextButton")
-    SaveButton.Size = UDim2.new(1, 0, 0, 40)
+    SaveButton.Size = UDim2.new(1, 0, 0, 36)
     SaveButton.BackgroundColor3 = COLORS.Accent
     SaveButton.Text = "Save Configuration"
     SaveButton.TextColor3 = Color3.fromRGB(8, 8, 12)
-    SaveButton.TextSize = 13
+    SaveButton.TextSize = 12
     SaveButton.Font = Enum.Font.GothamBold
     SaveButton.AutoButtonColor = false
     SaveButton.ZIndex = 11
@@ -895,7 +895,7 @@ function ModernUI:ShowSettingsWindow()
     SaveButton.Parent = Content
     
     local SaveCorner = Instance.new("UICorner")
-    SaveCorner.CornerRadius = UDim.new(0, 10)
+    SaveCorner.CornerRadius = UDim.new(0, 9)
     SaveCorner.Parent = SaveButton
     
     SaveButton.MouseButton1Click:Connect(function()
